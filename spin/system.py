@@ -23,19 +23,25 @@ class system(object):
         self._geometry = geometry
         self._configuration = configuration
 
-    def randomly_distributed(self):
+    def random_configuration(self):
         """
         Distribute particles according to random configuration
         """
         state = np.random.randint(2, size=self._geometry) - self._spin
         self._configuration = state
 
-    def uniformly_distributed(self, val):
+    def uniform_configuration(self, val):
         """
         Distribute particles according to uniform configuration
         """
         state = np.ones(self._geometry) * val
         self._configuration = state
+
+    def energy(self):
+        """
+        Calculate configuration energy
+        """
+        return conf_energy(self._configuration)
 
     def mag(self):
         """
