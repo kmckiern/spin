@@ -1,4 +1,5 @@
 import numpy as np
+from .operators import *
 
 class system(object):
     """
@@ -8,31 +9,36 @@ class system(object):
     ----------
     spin : spin value for particles
     geometry : geometric arrangement of particles
-    distribution : spin distribution of particle system
+    configuration : spin configuration of particles
     """
 
-    def __init__(self, spin=.5, geometry=(1,), distribution=None):
+    def __init__(self, spin=.5, geometry=(1,), configuration=None):
         """
-        Returns a system object with a given spin distribution
+        Returns particle system object 
         """
-
         if isinstance(geometry, int):
             geometry = (geometry,)
 
         self._spin = spin
         self._geometry = geometry
-        self._distribution = distribution
+        self._configuration = configuration
 
     def randomly_distributed(self):
         """
-        Distribute particles according to random distribution
+        Distribute particles according to random configuration
         """
-        state = np.random.randint(2, size=self._geometry) * self._spin
-        self._distribution = state
+        state = np.random.randint(2, size=self._geometry) - self._spin
+        self._configuration = state
 
     def uniformly_distributed(self, val):
         """
-        Distribute particles according to uniform distribution
+        Distribute particles according to uniform configuration
         """
         state = np.ones(self._geometry) * val
-        self._distribution = state
+        self._configuration = state
+
+    def mag(self):
+        """
+        Calculate configuration magnetization
+        """
+        return magnetization(self._configuration)
