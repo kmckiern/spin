@@ -12,7 +12,7 @@ class system(object):
     configuration : spin configuration of particles
     """
 
-    def __init__(self, spin=.5, geometry=(1,), configuration=None):
+    def __init__(self, spin=1, geometry=(1,), configuration=None):
         """
         Returns particle system object 
         """
@@ -25,9 +25,10 @@ class system(object):
 
     def random_configuration(self):
         """
-        Distribute particles according to random configuration
+        Distribute binary particles according to random configuration
         """
-        state = np.random.randint(2, size=self._geometry) - self._spin
+        state = np.random.choice([-1, 1], size=self._geometry)
+        state *= self._spin
         self._configuration = state
 
     def uniform_configuration(self, val):
