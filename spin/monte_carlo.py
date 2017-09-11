@@ -47,7 +47,7 @@ def MC_step(configuration, geometry, energy, T):
     else:
         return None
 
-def check_convergence(energies, threshold=.1):
+def check_convergence(energies, threshold=1):
     """
     Converged if standard error of the energy < threshold
     """
@@ -67,8 +67,8 @@ def check_autocorrelation(energies):
     n_samp = len(energies)
     var = np.var(energies)
     ac = corr / var
-    ac_l = ac.argmax()
-    return ac
+    ac_l = int(ac.argmax() * .5)
+    return ac_l
 
 def run_MCMC(configuration, geometry, energy, T, n_samples=1, min_samples=10000):
     """
@@ -91,20 +91,23 @@ def run_MCMC(configuration, geometry, energy, T, n_samples=1, min_samples=10000)
             if len(energies) > min_samples:
                 if n_samples == 1:
                     # check convergence
-                    continue_sampling = check_convergence(mixing_timeseries)
+                    continue_sampling = check_convergence(energies)
                     # if not converged, run for 10% more steps
-                        if continue_sampling:
-                            min_samples *= .1
-                        else:
-                            return configuration, energy
+                    if continue_sampling:
+                        min_samples *= .1
+                    else:
+                        return configuration, energy
                 else:
                     # check autocorrelation
-                    ac = check_autocorrelation(mixing_timeseries)
-                    configs = configurations[::ac]                    
-                    if len(configs) < n_samples:
+                    ac = check_autocorrelation(energies)
+                    print (ac)
+                    if len(configurations) > ac*n_samples:
                         continue
+                    else:
+                        configs = configurations[::ac]                    
+                        return configs
 
-def sample(config, geo, energy, T, n_samples=1):
+def sample(config, geo, energy, T, n_samples=3):
     """
     Run MCMC scheme on initial configuration
     """
@@ -112,6 +115,6 @@ def sample(config, geo, energy, T, n_samples=1):
     config, energy = run_MCMC(config, geo, energy, T)
 
     # get n_samples samples
-    configurations = run_MCMC(config, geo, energy, T, True, n_samples)
+    configurations = run_MCMC(config, geo, energy, T, n_samples)
 
     return configurations

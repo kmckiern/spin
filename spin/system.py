@@ -56,5 +56,5 @@ class System(object):
         """
         Equilibrate via Metroplis Monte Carlo
         """
-        samples = sample(self._configuration, self._geometry, self._energy, self._T)
+        samples = sample(self._configuration, self._geometry, self.energy(), self._T)
         return samples
