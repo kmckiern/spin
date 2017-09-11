@@ -59,7 +59,7 @@ def check_autocorrelation(energies, threshold=.01):
     """
     energies -= np.mean(energies)
     n_samples = len(energies)
-    for lag in np.arange(0, n_samples, int(.05*n_samples)):
+    for lag in np.arange(0, n_samples, 2):
         ac = np.corrcoef(energies[:n_samples-lag], energies[lag:n_samples])[0,1]
         if ac < threshold:
             return lag
@@ -85,12 +85,12 @@ def run_MCMC(configuration, geometry, energy, T, n_samples, eq=False, min_steps=
                     return configuration, energy
             else:
                 ac = check_autocorrelation(energies)
-                if ac != 0 and (len(configurations) > ac*n_samples):
-                    return configurations[::ac]
-            # if not converged, or too correlated, run for 10% more steps
-            min_steps *= .1
+                if ac != 0 and (len(configurations[::ac]) > n_samples):
+                    return configurations[::ac], energies
+            # if not converged, or too correlated, run for 2x more steps
+            min_steps *= 2
 
-def sample(config, geo, energy, T, n_samples=3):
+def sample(config, geo, energy, T, n_samples=1000):
     """
     Run MCMC scheme on initial configuration
     """
@@ -98,8 +98,7 @@ def sample(config, geo, energy, T, n_samples=3):
     config, energy = run_MCMC(config, geo, energy, T, 1, eq=True, min_steps=50000)
 
     # get at least n_samples samples
-    configurations = run_MCMC(config, geo, energy, T, n_samples)
+    configurations, energies = run_MCMC(config, geo, energy, T, n_samples)
 
     # return ensemble of samples
     return np.array(configurations)
-
