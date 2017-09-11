@@ -27,14 +27,10 @@ def acceptance_criterion(energy_i, energy_j, T):
     """
     Gibbs acceptance
     """
-    accept = False
     energy_difference = energy_j - energy_i
-    if energy_difference < 0:
-        accept = True
-    else:
-        if np.random.random() < np.exp(-1. * energy_difference / T):
-            accept = True
-    return accept
+    gibbs_criterion = np.exp(-1. * energy_difference / T)
+    if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
+        return True
 
 def MC_step(configuration, geometry, energy, T):
     """
@@ -47,16 +43,14 @@ def MC_step(configuration, geometry, energy, T):
     if acceptance_criterion(energy, energy_n, T):
         return configuration_n, energy_n
     else:
-        return None
+        return MC_step(configuration, geometry, energy, T)
 
 def check_convergence(energies, threshold=.3):
     """
     Converged if standard error of the energy < threshold
     """
     ste = np.std(energies) / (len(energies)**.5)
-    if ste < threshold:
-        return False
-    else:
+    if ste > threshold:
         return True
 
 def check_autocorrelation(energies, threshold=.01):
@@ -71,51 +65,40 @@ def check_autocorrelation(energies, threshold=.01):
             return lag
     return 0
 
-def run_MCMC(configuration, geometry, energy, T, eq=False, min_samples=10000):
+def run_MCMC(configuration, geometry, energy, T, n_samples, eq=False, min_steps=10000):
     """
     Generate samples
         for mixing: until convergence criterion is met
         for eq: until desired number of independent samples found
     """
+    continue_sampling = True
     configurations = []
     energies = []
-    continue_sampling = True
     while continue_sampling:
-        # generate sample
-        sample = MC_step(configuration, geometry, energy, T)
-        if sample == None:
-            continue
-        else:
-            configuration, energy = sample
-            configurations.append(configuration)
-            energies.append(energy)
-            if len(energies) > min_samples:
-                if eq:
-                    # check convergence
-                    continue_sampling = check_convergence(energies)
-                    # if not converged, run for 10% more steps
-                    if continue_sampling:
-                        min_samples *= .1
-                    else:
-                        return configuration, energy
-                else:
-                    # check autocorrelation
-                    ac = check_autocorrelation(energies)
-                    if ac == 0 or (len(configurations) < ac*n_samples):
-                        min_samples *= .1
-                        continue
-                    else:
-                        return configurations[::ac]
+        configuration, energy = MC_step(configuration, geometry, energy, T)
+        configurations.append(configuration)
+        energies.append(energy)
+        if len(energies) > min_steps:
+            if eq:
+                continue_sampling = check_convergence(energies)
+                if not continue_sampling:
+                    return configuration, energy
+            else:
+                ac = check_autocorrelation(energies)
+                if ac != 0 and (len(configurations) > ac*n_samples):
+                    return configurations[::ac]
+            # if not converged, or too correlated, run for 10% more steps
+            min_steps *= .1
 
-def sample(config, geo, energy, T, n_samples=100):
+def sample(config, geo, energy, T, n_samples=3):
     """
     Run MCMC scheme on initial configuration
     """
     # equilibrate (mix) the chain
-    config, energy = run_MCMC(config, geo, energy, T, eq=True, min_samples=50000)
+    config, energy = run_MCMC(config, geo, energy, T, 1, eq=True, min_steps=50000)
 
-    # get n_samples samples
-    configurations = run_MCMC(config, geo, energy, T)
+    # get at least n_samples samples
+    configurations = run_MCMC(config, geo, energy, T, n_samples)
 
     # return ensemble of samples
     return np.array(configurations)
