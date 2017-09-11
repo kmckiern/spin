@@ -20,14 +20,14 @@ def adj_kernel(configuration):
     center *= 0
     return kernel
 
-def conf_energy(configuration):
+def conf_energy(configuration, J=-1.0):
     """
     Evaluate hamiltonian via normalized convolution with adjacency kernel
     """
     kernel = adj_kernel(configuration)
     n_adj = np.sum(kernel)
     c = filters.convolve(configuration, kernel, mode='wrap')
-    energy = -1. * np.sum(c * configuration) / n_adj 
+    energy = J * np.sum(c * configuration) / n_adj 
     return energy
 
 def magnetization(configuration):

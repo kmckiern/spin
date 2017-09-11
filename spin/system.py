@@ -1,7 +1,8 @@
 import numpy as np
-from .operators import *
+from .operators import conf_energy, magnetization
+from .monte_carlo import sample
 
-class system(object):
+class System(object):
     """
     Representation of a particle system
 
@@ -10,9 +11,9 @@ class system(object):
     spin : spin value for particles
     geometry : geometric arrangement of particles
     configuration : spin configuration of particles
+    T: temperature
     """
-
-    def __init__(self, spin=1, geometry=(1,), configuration=None):
+    def __init__(self, spin=1, geometry=(1,), configuration=None, T=1):
         """
         Returns particle system object 
         """
@@ -22,6 +23,7 @@ class system(object):
         self._spin = spin
         self._geometry = geometry
         self._configuration = configuration
+        self._T = T
 
     def random_configuration(self):
         """
@@ -49,3 +51,10 @@ class system(object):
         Calculate configuration magnetization
         """
         return magnetization(self._configuration)
+
+    def sample_MCMC(self):
+        """
+        Equilibrate via Metroplis Monte Carlo
+        """
+        samples = sample(self._configuration, self._geometry, self._energy, self._T)
+        return samples
