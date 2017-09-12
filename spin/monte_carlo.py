@@ -65,7 +65,7 @@ def check_autocorrelation(energies, threshold=.01):
             return lag
     return 0
 
-def run_MCMC(configuration, geometry, energy, T, n_samples, eq=False, min_steps=10000):
+def run_MCMC(configuration, geometry, energy, T, n_samples=1, eq=False, min_steps=10000):
     """
     Generate samples
         for mixing: until convergence criterion is met
@@ -87,7 +87,7 @@ def run_MCMC(configuration, geometry, energy, T, n_samples, eq=False, min_steps=
                 ac = check_autocorrelation(energies)
                 if ac != 0:
                     independent_configurations = configurations[::ac]
-                    if len(independent_configurations > n_samples):
+                    if len(independent_configurations) > n_samples:
                         return independent_configurations
             # if not converged, or too correlated, run for 2x more steps
             min_steps *= 2
@@ -97,10 +97,10 @@ def sample(config, geo, energy, T, n_samples=1000):
     Run MCMC scheme on initial configuration
     """
     # equilibrate (mix) the chain
-    config, energy = run_MCMC(config, geo, energy, T, 1, eq=True, min_steps=50000)
+    config, energy = run_MCMC(config, geo, energy, T, eq=True)
 
     # get at least n_samples samples
-    configurations = run_MCMC(config, geo, energy, T, n_samples)
+    configurations = run_MCMC(config, geo, energy, T, n_samples=n_samples)
 
     # return ensemble of samples
     return np.array(configurations)
