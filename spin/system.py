@@ -24,21 +24,9 @@ class System(object):
         self._geometry = geometry
         self._configuration = configuration
         self._T = T
-
-    def random_configuration(self):
-        """
-        Distribute binary particles according to random configuration
-        """
-        state = np.random.choice([-1, 1], size=self._geometry)
-        state *= self._spin
-        self._configuration = state
-
-    def uniform_configuration(self, val):
-        """
-        Distribute particles according to uniform configuration
-        """
-        state = np.ones(self._geometry) * val
-        self._configuration = state
+        self._energy = None
+        self._mag = None
+        self._ensemble = None
 
     def energy(self):
         """
@@ -52,9 +40,29 @@ class System(object):
         """
         return magnetization(self._configuration)
 
+    def random_configuration(self):
+        """
+        Distribute binary particles according to random configuration
+        """
+        state = np.random.choice([-1, 1], size=self._geometry)
+        state *= self._spin
+        self._configuration = state
+        self._energy = self.energy()
+        self._mag = self.mag()
+
+    def uniform_configuration(self, val):
+        """
+        Distribute particles according to uniform configuration
+        """
+        state = np.ones(self._geometry) * val
+        self._configuration = state
+        self._energy = self.energy()
+        self._mag = self.mag()
+
     def sample_MCMC(self):
         """
         Equilibrate via Metroplis Monte Carlo
         """
         samples = sample(self._configuration, self._geometry, self.energy(), self._T)
-        return samples
+        self._ensemble = samples
+
