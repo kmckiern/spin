@@ -34,5 +34,5 @@ def magnetization(configuration):
     """
     Given by total spin value
     """
-    return np.sum(configuration)
+    return np.sum(configuration) / configuration.size
 
