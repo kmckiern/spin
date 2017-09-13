@@ -46,14 +46,13 @@ class Ensemble(object):
         """
         To take a step, flip a spin and check for acceptance
         """
-        # flip spin
-        configuration_n = self.flip_spin(configuration, geometry)
-        energy_n = self.get_energy(configuration_n, J=-1.0)
-        # accept according to acceptance criterion
-        if self.acceptance_criterion(energy, energy_n, T):
-            return configuration_n, energy_n
-        else:
-            return self.MC_step(configuration, geometry, energy, T)
+        while True:
+            # flip spin
+            configuration_n = self.flip_spin(configuration, geometry)
+            energy_n = self.get_energy(configuration_n, J=-1.0)
+            # accept according to acceptance criterion
+            if self.acceptance_criterion(energy, energy_n, T):
+                return configuration_n, energy_n
     
     def check_convergence(self, energies, threshold=.3):
         """
@@ -73,7 +72,6 @@ class Ensemble(object):
             ac = np.corrcoef(energies[:n_samples-lag], energies[lag:n_samples])[0,1]
             if ac < threshold:
                 return lag
-        return 0
     
     def run_MCMC(self, configuration, geometry, energy, T, n_samples=1, eq=False, min_steps=10):
         """
@@ -95,7 +93,7 @@ class Ensemble(object):
                         return configuration, energy
                 else:
                     ac = self.check_autocorrelation(energies)
-                    if ac != 0:
+                    if ac != None:
                         independent_configurations = configurations[::ac]
                         if len(independent_configurations) > n_samples:
                             return independent_configurations
