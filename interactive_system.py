@@ -1,10 +1,11 @@
 #!/bin/env python
 
-from spin import *
+from spin import Model
 import IPython
 
-x = system(spin=1, geometry=(4,6))
-x.random_configuration()
+x = Model()
+x.generate_system(geometry=(6,6))
+x.measure_system()
+x.generate_ensemble()
 
 IPython.embed()
-
