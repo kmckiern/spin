@@ -1,7 +1,6 @@
 import numpy as np
-from scipy.signal import correlate
-from operators import Operators
 import copy
+from .operators import Operators
 
 class Ensemble(object):
     """

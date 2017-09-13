@@ -1,7 +1,7 @@
 import numpy as np
-from system import System
-from operators import Operators
-from ensemble import Ensemble
+from .system import System
+from .operators import Operators
+from .ensemble import Ensemble
 
 class Model(object):
     """
