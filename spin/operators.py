@@ -2,9 +2,11 @@ import numpy as np
 from scipy.ndimage import filters 
 
 class Operators(object):
+
     """
     Measure properties of particle system configuration
     """
+
     def __init__(self, configuration, J=-1.0):
         if configuration == None:
             raise ValueError('must have a configuration!')
@@ -12,9 +14,11 @@ class Operators(object):
         self._magnetization = self.magnetization(configuration)
     
     def energy(self, configuration, J):
+
         """
         Evaluate hamiltonian via normalized convolution with adjacency kernel
         """
+
         # create kernel of correct shape
         kernel = np.ones(configuration.shape)
         kernel = kernel[tuple(slice(0, 3) for i in kernel.shape)]
@@ -28,8 +32,10 @@ class Operators(object):
         return J * np.sum(c * configuration) / np.sum(kernel)
     
     def magnetization(self, configuration):
+
         """
         Given by total spin value
         """
+
         return np.sum(configuration) / configuration.size
     
