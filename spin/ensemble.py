@@ -2,7 +2,7 @@ import numpy as np
 import copy
 from .operators import Operators
 
-class Ensemble(object):
+class Ensemble(Operators):
 
     """
     Sample system via MCMC with Gibbs Sampling
@@ -46,9 +46,6 @@ class Ensemble(object):
         if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
             return True
     
-    def get_energy(self, configuration, J=-1.0):
-        return Operators.energy(self, configuration, J)
-
     def MC_step(self, configuration, geometry, energy, T):
 
         """
@@ -58,7 +55,7 @@ class Ensemble(object):
         while True:
             # flip spin
             configuration_n = self.flip_spin(configuration, geometry)
-            energy_n = self.get_energy(configuration_n, J=-1.0)
+            energy_n = self.energy(configuration_n, J=-1.0)
             # accept according to acceptance criterion
             if self.acceptance_criterion(energy, energy_n, T):
                 return configuration_n, energy_n
@@ -103,7 +100,6 @@ class Ensemble(object):
                     energy, T)
             configurations.append(configuration)
             energies.append(energy)
-            count += 1
             if len(energies) > min_steps:
                 if eq:
                     if not self.check_convergence(energies):

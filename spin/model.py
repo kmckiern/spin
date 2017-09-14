@@ -22,6 +22,6 @@ class Model(object):
     def generate_ensemble(self, n_samples=1):
         self._ensemble = Ensemble(self, n_samples)
 
-    def ensemble_system(self, J=-1.0):
+    def measure_ensemble(self, J=-1.0):
         self._ensemble._observables = Operators(self._ensemble._configurations, J)
 

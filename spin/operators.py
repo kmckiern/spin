@@ -12,11 +12,11 @@ class Operators(object):
             raise ValueError('must have a configuration!')
         self._energy = self.energy(configuration, J)
         self._magnetization = self.magnetization(configuration)
-    
-    def energy(self, configuration, J):
+
+    def adj_kernel(self, configuration):
 
         """
-        Evaluate hamiltonian via normalized convolution with adjacency kernel
+        Creates adjecency kernel for arbitrary dimensional array
         """
 
         # create kernel of correct shape
@@ -27,9 +27,28 @@ class Operators(object):
         non_adj *= 0
         center = kernel[tuple(slice(1, 2, j) for j in kernel.shape)]
         center *= 0
+        return kernel
 
+    def hamiltonian(self, configuration, J):
+
+        """
+        Evaluate hamiltonian via normalized convolution with adjacency kernel
+        """
+
+        kernel = self.adj_kernel(configuration) 
         c = filters.convolve(configuration, kernel, mode='wrap')
         return J * np.sum(c * configuration) / np.sum(kernel)
+    
+    def energy(self, configuration, J):
+        
+        """
+        Calculate energy for arbitrary dimensional configuration
+        """
+        
+        if configuration.ndim > 2:
+            return np.apply_along_axis(self.hamiltonian, 0, configuration, J=J)
+        else:
+            return self.hamiltonian(configuration, J=J)
     
     def magnetization(self, configuration):
 
@@ -37,5 +56,10 @@ class Operators(object):
         Given by total spin value
         """
 
-        return np.sum(configuration) / configuration.size
+        if configuration.ndim > 2:
+            n_spin = configuration[0].size
+        else:
+            n_spin = configuration.size
+
+        return configuration.sum(-1).sum(-1) / n_spin
     
