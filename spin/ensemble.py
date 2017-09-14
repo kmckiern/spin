@@ -14,7 +14,7 @@ class Ensemble(object):
         geometry = _system._geometry
         configuration = _system._configuration
         energy = _system._observables._energy
-        self._configurations = self.sample(configuration, geometry, energy, T, 
+        self._configurations = self.sample(configuration, geometry, energy, T,
                 n_samples)
     
     def flip_spin(self, configuration, geometry):
@@ -84,10 +84,8 @@ class Ensemble(object):
         for lag in np.arange(0, n_samples, 2):
             ac = np.corrcoef(energies[:n_samples-lag], 
                     energies[lag:n_samples])[0,1]
-            print ('in loop', ac)
             if ac < threshold:
                 return lag
-        print ('correlated past ', len(energies), ' samples. ac: ', ac)
     
     def run_MCMC(self, configuration, geometry, energy, T, n_samples=1,
             eq=False, min_steps=100):
