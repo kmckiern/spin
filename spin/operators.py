@@ -46,7 +46,7 @@ class Operators(object):
         """
         
         if configuration.ndim > 2:
-            return np.apply_along_axis(self.hamiltonian, 0, configuration, J=J)
+            return np.array([self.hamiltonian(c, J=J) for c in configuration])
         else:
             return self.hamiltonian(configuration, J=J)
     
