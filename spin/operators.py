@@ -8,7 +8,7 @@ class Operators(object):
     """
 
     def __init__(self, configuration, J=-1.0):
-        if configuration == None:
+        if configuration.any() == None:
             raise ValueError('must have a configuration!')
         self._energy = self.energy(configuration, J)
         self._magnetization = self.magnetization(configuration)
