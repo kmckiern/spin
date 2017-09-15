@@ -43,18 +43,44 @@ class Hopfield(Network):
     def __init__(self, data, split=.8):
         self.data = data
         self.split = split
-        self.weight = np.zeros(data[0].shape)
+        self.weights = np.zeros(data[0].shape)
 
-    def weight_update(self, configuration):
+    def weight_update(self, weights):
+
+        """
+        Update weights according to generalized Hebbian rule
+        """
+
         rows, cols = configuration.shape
         for r in rows:
             for c in cols:
-                sample_weights[r][c] = (2*configuration[i,:] - 1) *
-                    (2*configuration[:,j] - 1) 
+                if r <= c:
+                    continue
+                w_rc = (2*configuration[i,:] - 1) * (2*configuration[:,j] - 1) 
+                weights[r][c] = w_rc
         return weights
 
-    def train_weights(self, data):
-        for samples in data:
-            self.weights += self.weight_update(sample)
-        np.fill_diagonal(self.weights, 0)
+    def fit(self, weights, data):
 
+        """
+        Use each sample to train the weight matrix
+        """
+
+        for samples in data:
+            weights += weight_update(sample)
+        weights += weights.T
+        weights /= weights.size
+        return weights
+
+    def test(self, weights, data):
+
+        """
+        Use each sample to test the weight matrix
+        """
+        
+    def build(self):
+        train, test = self.split()
+        weights = self.fit(self.weights, train)
+        self.weights = weights
+        score = self.test(weights, test)
+        print (score)
