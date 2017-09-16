@@ -25,7 +25,7 @@ class System(object):
         if isinstance(geometry, int):
             geometry = (geometry,)
         self._geometry = geometry
-        if configuration == None:
+        if configuration.any() == None:
             self._configuration = self.random_configuration()
         else:
             self._configuration = configuration
