@@ -13,6 +13,9 @@ class Network(Operators):
     def fit(self, data):
         return self
 
+    def test(self, data):
+        return self
+
     def split(self, data, split_ratio):
 
         """
@@ -56,12 +59,12 @@ class Hopfield(Network):
         self.data = data
         self.train, self.test = self.split(data, split_ratio)
         self.weights = self.fit(self.train)
+        self.queried = self.test(self.test, self.weights)
 
     def fit(self, training_data):
 
         """
-        Use each train sample to construct the weight matrix
-        Update weights according to generalized Hebbian rule
+        Train weights according to generalized Hebbian rule
         """
 
         n_neurons = len(training_data[0])
@@ -73,9 +76,10 @@ class Hopfield(Network):
         np.fill_diagonal(weights, 0)
         return weights
 
-    def test(self, weights, data):
+    def test(self, test_data, weights):
 
         """
         Use each sample to test the weight matrix
         """
         
+        return np.dot(test_data, weights)
