@@ -32,12 +32,19 @@ ec = x._ensemble._configurations
 # measure observables on ensemble
 x.measure_ensemble()
 
-# print discriptions of state and ensemble
+# print descriptions of state and ensemble
 print('~ system description ~')
 x.describe_system()
 print ('\n')
 print('~ ensemble description ~')
 x.describe_ensemble()
+
+# create hopfield network
+x.generate_hopfield()
+
+# print description of network
+print ('~ network description ~')
+x.describe_network()
 
 # start interactive session to work with system/ensemble
 IPython.embed()
