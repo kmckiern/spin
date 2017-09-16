@@ -13,18 +13,28 @@ class Network(Operators):
     def fit(self, data):
         return self
 
-    def split(self, data, ratio):
+    def split(self, data, split_ratio):
+
+        """
+        ratio = test/train divide of data
+        """
+
         n_samples = data.shape[0]
-        divide = int(n_samples * ratio)
-        train = mixed_data[:divide]
-        test = mixed_data[divide:]
+        divide = int(n_samples * split_ratio)
+        train = data[:divide]
+        test = data[divide:]
         return train, test
 
-    def random_split(self, data, ratio):
+    def random_split(self, data, split_ratio):
+
+        """
+        Randomizes data, then splits
+        """
+
         n_samples = data.shape[0]
         mix_ndx = np.random.permutation(n_samples)
         mixed_data = data[mix_ndx]
-        return self.split(mixed_data, ratio)
+        return self.split(mixed_data, split_ratio)
 
 class Hopfield(Network):
 
@@ -37,39 +47,30 @@ class Hopfield(Network):
     ----------
     data : binary arrays of spin configurations
     split : test/train ratio
-    weight : model memory weight matrix
     """
 
-    def __init__(self, data, split=.8):
+    def __init__(self, data, split_ratio=.8):
+        n_samples, nr, nc = data.shape
+        # easier to do this using 1D array of values
+        data = data.reshape(n_samples, nr*nc)
         self.data = data
-        self.split = split
-        self.weights = np.zeros(data[0].shape)
+        self.train, self.test = self.split(data, split_ratio)
+        self.weights = self.fit(self.train)
 
-    def weight_update(self, weights):
+    def fit(self, training_data):
 
         """
+        Use each train sample to construct the weight matrix
         Update weights according to generalized Hebbian rule
         """
 
-        rows, cols = configuration.shape
-        for r in rows:
-            for c in cols:
-                if r <= c:
-                    continue
-                w_rc = (2*configuration[i,:] - 1) * (2*configuration[:,j] - 1) 
-                weights[r][c] = w_rc
-        return weights
-
-    def fit(self, weights, data):
-
-        """
-        Use each sample to train the weight matrix
-        """
-
-        for samples in data:
-            weights += weight_update(sample)
-        weights += weights.T
-        weights /= weights.size
+        n_neurons = len(training_data[0])
+        weights = np.zeros((n_neurons, n_neurons))
+        for sample in training_data:
+            weights += np.outer(sample, sample)
+        # normalize, and zero diagonal
+        weights /= n_neurons
+        np.fill_diagonal(weights, 0)
         return weights
 
     def test(self, weights, data):
@@ -78,9 +79,3 @@ class Hopfield(Network):
         Use each sample to test the weight matrix
         """
         
-    def build(self):
-        train, test = self.split()
-        weights = self.fit(self.weights, train)
-        self.weights = weights
-        score = self.test(weights, test)
-        print (score)
