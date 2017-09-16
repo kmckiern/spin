@@ -57,9 +57,9 @@ class Hopfield(Network):
         # easier to do this using 1D array of values
         data = data.reshape(n_samples, nr*nc)
         self.data = data
-        self.train, self.test = self.split(data, split_ratio)
-        self.weights = self.fit(self.train)
-        self.queried = self.test(self.test, self.weights)
+        self.training_data, self.test_data = self.split(data, split_ratio)
+        self.weights = self.fit(self.training_data)
+        self.queried = self.test(self.test_data, self.weights)
 
     def fit(self, training_data):
 
