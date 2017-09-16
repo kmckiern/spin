@@ -22,18 +22,22 @@ class Model(object):
     def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
         self._system = System(T, spin, geometry, configuration)
 
-    def measure_system(self, J=-1.0):
-        self._system._observables = Operators(self._system._configuration, J)
-
     def generate_ensemble(self, n_samples=1):
         self._ensemble = Ensemble(self, n_samples)
+
+    def generate_hopfield(self):
+        self._network = Hopfield(self._ensemble._configurations)
+
+    def measure_system(self, J=-1.0):
+        self._system._observables = Operators(self._system._configuration, J)
 
     def measure_ensemble(self, J=-1.0):
         self._ensemble._observables = Operators(self._ensemble._configurations, J)
 
     def describe(self, d):
         d = copy.copy(d)
-        d['_observables'] = d['_observables'].__dict__
+        if '_observables' in d.keys():
+            d['_observables'] = d['_observables'].__dict__
         pprint(d)
 
     def describe_system(self):
@@ -44,5 +48,11 @@ class Model(object):
         ensemble_properties = self._ensemble.__dict__
         self.describe(ensemble_properties)
 
-    def generate_hopfield(self):
-        self._network = Hopfield(self._ensemble._configurations)
+    def describe_ensemble(self):
+        ensemble_properties = self._ensemble.__dict__
+        self.describe(ensemble_properties)
+
+    def describe_network(self):
+        network_properties = self._network.__dict__
+        self.describe(network_properties)
+
