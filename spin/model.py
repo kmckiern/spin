@@ -1,9 +1,12 @@
-import numpy as np
 from .system import System
 from .operators import Operators
 from .ensemble import Ensemble
+from .network import Hopfield
+
+import numpy as np
 import copy
 from pprint import pprint
+
 
 class Model(object):
 
@@ -14,6 +17,7 @@ class Model(object):
     def __init__(self):
         self._system = None
         self._ensemble = None
+        self._network = None
 
     def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
         self._system = System(T, spin, geometry, configuration)
@@ -39,3 +43,6 @@ class Model(object):
     def describe_ensemble(self):
         ensemble_properties = self._ensemble.__dict__
         self.describe(ensemble_properties)
+
+    def generate_hopfield(self):
+        self._network = Hopfield(self._ensemble._configurations)
