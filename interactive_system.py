@@ -34,10 +34,10 @@ x.measure_ensemble()
 
 # print discriptions of state and ensemble
 print('~ system description ~')
-print(x.describe_system())
-print ('\n\n\n\n')
+x.describe_system()
+print ('\n')
 print('~ ensemble description ~')
-print(x.describe_ensemble())
+x.describe_ensemble()
 
 # start interactive session to work with system/ensemble
 IPython.embed()
