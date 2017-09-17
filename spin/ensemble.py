@@ -12,7 +12,7 @@ class Ensemble(Operators):
 
         self.__dict__.update(system.__dict__)
         self.n_samples = n_samples
-        self.configuration = self.sample()
+        self.sample()
 
         # measure ensemble
         super(Ensemble, self).__init__()
@@ -70,7 +70,7 @@ class Ensemble(Operators):
         if ste < threshold:
             return True
     
-    def check_autocorrelation(self, energies, threshold=.01):
+    def check_autocorrelation(self, configurations, energies, threshold=.01):
 
         """
         Determine autocorrelation of time series
@@ -82,7 +82,10 @@ class Ensemble(Operators):
             ac = np.corrcoef(energies[:n_samples-lag], 
                     energies[lag:n_samples])[0,1]
             if ac < threshold:
-                return lag
+                uncorrelated = configurations[::lag]
+                if len(uncorrelated) > self.n_samples:
+                    self.configuration = np.array(uncorrelated[:self.n_samples])
+                    return True
     
     def run_mcmc(self, eq=False, min_steps=100):
 
@@ -103,11 +106,8 @@ class Ensemble(Operators):
                     if self.check_convergence(energies):
                         break
                 else:
-                    acl = self.check_autocorrelation(energies)
-                    if acl != None:
-                        id_configurations = configurations[::acl]
-                        if len(id_configurations) > self.n_samples:
-                            return id_configurations[:self.n_samples]
+                    if self.check_autocorrelation(configurations, energies):
+                        break
                 # if not converged/too correlated, run for 2x more steps
                 min_steps *= 2
 
@@ -121,6 +121,4 @@ class Ensemble(Operators):
         self.run_mcmc(eq=True)
     
         # production, get at least n_samples samples
-        configurations = self.run_mcmc()
-    
-        return np.array(configurations)
+        self.run_mcmc()
