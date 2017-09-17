@@ -8,14 +8,14 @@ class Ensemble(Operators):
     Sample system via MCMC with Gibbs Sampling
     """
 
-    def __init__(self, model, n_samples):
-        _system = model._system
-        T = _system._T
-        geometry = _system._geometry
-        configuration = _system._configuration
-        energy = _system._observables._energy
-        self._configurations = self.sample(configuration, geometry, energy, T,
+    def __init__(self, system, n_samples):
+
+        self.configuration = self.sample(system.configuration,
+                system.geometry, system.energy, system.T,
                 n_samples)
+
+        # measure ensemble
+        super(Ensemble, self).__init__()
     
     def flip_spin(self, configuration, geometry):
 

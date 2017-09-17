@@ -7,11 +7,11 @@ class Operators(object):
     Measure properties of particle system configuration
     """
 
-    def __init__(self, configuration, J=-1.0):
-        if configuration.any() == None:
+    def __init__(self, J=-1.0):
+        if self.configuration.any() == None:
             raise ValueError('must have a configuration!')
-        self._energy = self.energy(configuration, J)
-        self._magnetization = self.magnetization(configuration)
+        self.energy = self.energy(self.configuration, J)
+        self.magnetization = self.magnetization(self.configuration)
 
     def adj_kernel(self, configuration):
 

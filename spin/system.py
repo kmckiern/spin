@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.ndimage import filters 
+from .operators import Operators
 
-class System(object):
+class System(Operators):
 
     """
     Representation of a binary particle system
@@ -20,15 +21,18 @@ class System(object):
         Returns particle system object 
         """
 
-        self._T = T
-        self._spin = spin
+        self.T = T
+        self.spin = spin
         if isinstance(geometry, int):
             geometry = (geometry,)
-        self._geometry = geometry
+        self.geometry = geometry
         if configuration.any() == None:
-            self._configuration = self.random_configuration()
+            self.configuration = self.random_configuration()
         else:
-            self._configuration = configuration
+            self.configuration = configuration
+
+        # measure system
+        super(System, self).__init__()
 
     def random_configuration(self):
 
@@ -36,7 +40,7 @@ class System(object):
         Distribute particles according to random configuration
         """
 
-        state = np.random.choice([-1, 1], size=self._geometry)
+        state = np.random.choice([-1, 1], size=self.geometry)
         state *= self._spin
         return state
 
@@ -46,5 +50,5 @@ class System(object):
         Distribute particles according to uniform configuration
         """
 
-        state = np.ones(self._geometry) * val
+        state = np.ones(self.geometry) * val
         return state
