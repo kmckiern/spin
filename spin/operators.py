@@ -10,8 +10,8 @@ class Operators(object):
     def __init__(self, J=-1.0):
         if self.configuration.any() == None:
             raise ValueError('must have a configuration!')
-        self.energy = self.energy(self.configuration, J)
-        self.magnetization = self.magnetization(self.configuration)
+        self.energy = self.measure_energy(self.configuration, J)
+        self.magnetization = self.measure_magnetization(self.configuration)
 
     def adj_kernel(self, configuration):
 
@@ -39,7 +39,7 @@ class Operators(object):
         c = filters.convolve(configuration, kernel, mode='wrap')
         return J * np.sum(c * configuration) / np.sum(kernel)
     
-    def energy(self, configuration, J):
+    def measure_energy(self, configuration, J):
         
         """
         Calculate energy for arbitrary dimensional configuration
@@ -50,7 +50,7 @@ class Operators(object):
         else:
             return self.hamiltonian(configuration, J=J)
     
-    def magnetization(self, configuration):
+    def measure_magnetization(self, configuration):
 
         """
         Given by total spin value
