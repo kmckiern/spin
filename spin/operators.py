@@ -44,7 +44,7 @@ class Operators(object):
         """
         Calculate energy for arbitrary dimensional configuration
         """
-        
+
         if configuration.ndim > 2:
             return np.array([self.hamiltonian(c, J=J) for c in configuration])
         else:
