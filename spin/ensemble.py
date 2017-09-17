@@ -105,9 +105,8 @@ class Ensemble(Operators):
                 if eq:
                     if self.check_convergence(energies):
                         break
-                else:
-                    if self.check_autocorrelation(configurations, energies):
-                        break
+                elif self.check_autocorrelation(configurations, energies):
+                    break
                 # if not converged/too correlated, run for 2x more steps
                 min_steps *= 2
 

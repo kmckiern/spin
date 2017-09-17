@@ -44,7 +44,7 @@ class System(Operators):
         state *= self._spin
         return state
 
-    def uniform_configuration(self, val):
+    def uniform_configuration(self, val=1):
 
         """
         Distribute particles according to uniform configuration
