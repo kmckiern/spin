@@ -1,6 +1,8 @@
 import numpy as np
 from .operators import Operators
 
+import copy
+
 class Network(Operators):
 
     """
@@ -10,22 +12,21 @@ class Network(Operators):
     def __init__(self):
         pass
 
-    def fit(self, data):
+    def train(self, data):
         return self
 
     def test(self, data):
         return self
 
-    def split(self, data, split_ratio):
+    def split(self):
 
         """
         ratio = test/train divide of data
         """
 
-        n_samples = data.shape[0]
-        divide = int(n_samples * split_ratio)
-        train = data[:divide]
-        test = data[divide:]
+        divide = int(self.n_samples * self.split_ratio)
+        train = self.data[:divide]
+        test = self.data[divide:]
         return train, test
 
     def random_split(self, data, split_ratio):
@@ -34,10 +35,9 @@ class Network(Operators):
         Randomizes data, then splits
         """
 
-        n_samples = data.shape[0]
-        mix_ndx = np.random.permutation(n_samples)
-        mixed_data = data[mix_ndx]
-        return self.split(mixed_data, split_ratio)
+        mix_ndx = np.random.permutation(self.n_samples)
+        self.data = self.data[mix_ndx]
+        self.split()
 
 class Hopfield(Network):
 
@@ -53,33 +53,37 @@ class Hopfield(Network):
     """
 
     def __init__(self, data, split_ratio=.8):
-        n_samples, nr, nc = data.shape
-        # easier to do this using 1D array of values
-        data = data.reshape(n_samples, nr*nc)
-        self.data = data
-        self.training_data, self.test_data = self.split(data, split_ratio)
-        self.weights = self.fit(self.training_data)
-        self.queried = self.test(self.test_data, self.weights)
 
-    def fit(self, training_data):
+        self.n_samples, nr, nc = data.shape
+        self.n_neurons = nr*nc
+        # easier to do this using 1D array of values
+        data = data.reshape(self.n_samples, self.n_neurons)
+
+        self.data = data
+        self.split_ratio = split_ratio
+        self.train_data, self.test_data = self.split()
+        self.weights = self.train()
+        self.test_errors = self.test()
+
+    def train(self):
 
         """
         Train weights according to generalized Hebbian rule
         """
 
-        n_neurons = len(training_data[0])
-        weights = np.zeros((n_neurons, n_neurons))
-        for sample in training_data:
+        weights = np.zeros((self.n_neurons, self.n_neurons))
+        for sample in self.train_data:
             weights += np.outer(sample, sample)
         # normalize, and zero diagonal
-        weights /= n_neurons
+        weights /= len(self.train_data)
         np.fill_diagonal(weights, 0)
         return weights
 
-    def test(self, test_data, weights):
+    def test(self):
 
         """
         Use each sample to test the weight matrix
         """
         
-        return np.dot(test_data, weights)
+        recall = np.sign(np.dot(self.test_data, self.weights))
+        return np.sum(recall != x.network.test_data, axis=1)
