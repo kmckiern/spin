@@ -1,6 +1,6 @@
 from .system import System
 from .ensemble import Ensemble
-from .network import Hopfield
+from .network import Hopfield, RestrictedBoltzmann
 
 import numpy as np
 import copy
@@ -26,6 +26,9 @@ class Model(object):
 
     def generate_hopfield(self):
         self.network = Hopfield(self.ensemble.configuration)
+
+    def generate_RBM(self):
+        self.network = RestrictedBoltzmann(self.ensemble.configuration)
 
     def describe(self, d):
         pprint(d)
