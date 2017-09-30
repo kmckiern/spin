@@ -1,6 +1,6 @@
+from __future__ import division
 import numpy as np
 from scipy.ndimage import filters 
-from __future__ import division
 
 class Operators(object):
 

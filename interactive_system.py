@@ -21,23 +21,19 @@ else:
     x.random_configuration()
 
 # generate ensemble from system
-x.generate_ensemble(n_samples=5)
+x.generate_ensemble(n_samples=8)
 
 # view ensemble configurations as np array
 ec = x.ensemble.configuration
 
-# print descriptions of state and ensemble
-x.describe_system()
-print ('\n')
-x.describe_ensemble()
-print ('\n')
+# print descriptions of system
+# x.describe_system()
 
 # create hopfield network
-x.generate_hopfield()
+# x.generate_hopfield()
 
-# print description of network
-x.describe_network()
+# create RMB
+# x.generate_RBM()
 
 # start interactive session to work with system/ensemble
 IPython.embed()
-
