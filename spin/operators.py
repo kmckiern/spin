@@ -3,9 +3,7 @@ from scipy.ndimage import filters
 
 class Operators(object):
 
-    """
-    Measure properties of particle system configuration
-    """
+    """ Measure properties of particle system configuration """
 
     def __init__(self, J=-1.0):
         if self.configuration.any() == None:
@@ -15,9 +13,7 @@ class Operators(object):
 
     def adj_kernel(self, configuration):
 
-        """
-        Creates adjecency kernel for arbitrary dimensional array
-        """
+        """ Creates adjecency kernel for arbitrary dimensional array """
 
         # create kernel of correct shape
         kernel = np.ones(configuration.shape)
@@ -31,9 +27,7 @@ class Operators(object):
 
     def hamiltonian(self, configuration, J):
 
-        """
-        Evaluate hamiltonian via normalized convolution with adjacency kernel
-        """
+        """ Evaluate hamiltonian via normalized convolution with kernel """
 
         kernel = self.adj_kernel(configuration) 
         c = filters.convolve(configuration, kernel, mode='wrap')
@@ -41,9 +35,7 @@ class Operators(object):
     
     def measure_energy(self, configuration, J):
         
-        """
-        Calculate energy for arbitrary dimensional configuration
-        """
+        """ Calculate energy for arbitrary dimensional configuration """
 
         if configuration.ndim > 2:
             return np.array([self.hamiltonian(c, J=J) for c in configuration])
@@ -52,9 +44,7 @@ class Operators(object):
     
     def measure_magnetization(self, configuration):
 
-        """
-        Given by total spin value
-        """
+        """ Given by total spin value """
 
         if configuration.ndim > 2:
             n_spin = configuration[0].size

@@ -4,8 +4,7 @@ from .operators import Operators
 
 class System(Operators):
 
-    """
-    Representation of a binary particle system
+    """ Representation of a binary particle system
 
     Parameters
     ----------
@@ -17,9 +16,7 @@ class System(Operators):
 
     def __init__(self, T=1, spin=1, geometry=(1,), configuration=None):
 
-        """
-        Returns particle system object 
-        """
+        """ Returns particle system object """
 
         self.T = T
         self.spin = spin
@@ -36,9 +33,7 @@ class System(Operators):
 
     def random_configuration(self):
 
-        """
-        Distribute particles according to random configuration
-        """
+        """ Distribute particles according to random configuration """
 
         state = np.random.choice([-1, 1], size=self.geometry)
         state *= self._spin
@@ -46,9 +41,7 @@ class System(Operators):
 
     def uniform_configuration(self, val=1):
 
-        """
-        Distribute particles according to uniform configuration
-        """
+        """ Distribute particles according to uniform configuration """
 
         state = np.ones(self.geometry) * val
         return state

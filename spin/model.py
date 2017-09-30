@@ -9,9 +9,7 @@ from pprint import pprint
 
 class Model(object):
 
-    """
-    Create, equilibrate, measure, and build network of model
-    """
+    """ Create, equilibrate, measure, and build network of model """
 
     def __init__(self):
         self.system = None

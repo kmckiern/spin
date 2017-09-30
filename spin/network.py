@@ -4,25 +4,20 @@ from .operators import Operators
 
 def conditional_prob(a, b, epsilon):
 
-    """
-    P(a_i|b)
-    """
+    """ P(a_i|b) """
 
     return np.dot(a, b) + epsilon
 
 def sigmoid(x):
 
-    """
-    Common activation function, strangely not in numpy afaik
-    """
+    """ Common activation function, strangely not in numpy afaik """
 
     return 1 / (1 + np.exp(-x))
 
 def binary_sig_prob(probs):
 
-    """
-    Apply activation to probabilities, and threshold
-    """
+    """ Apply activation to probabilities, and threshold """
+
     activated = np.round(sigmoid(probs))
     activated[activated == 0] = -1
     return activated
@@ -30,9 +25,7 @@ def binary_sig_prob(probs):
 
 class Network(Operators):
 
-    """
-    Base class for all network models
-    """
+    """ Base class for all network models """
 
     def __init__(self, data, split_ratio=.8):
 
@@ -48,9 +41,7 @@ class Network(Operators):
 
     def split(self):
 
-        """
-        ratio = test/train divide of data
-        """
+        """ ratio = test/train divide of data """
 
         divide = int(self.n_samples * self.split_ratio)
         train = self.data[:divide]
@@ -59,9 +50,7 @@ class Network(Operators):
 
     def random_split(self):
 
-        """
-        Randomizes data, then splits
-        """
+        """ Randomizes data, then splits """
 
         mix_ndx = np.random.permutation(self.n_samples)
         self.data = self.data[mix_ndx]
@@ -90,9 +79,7 @@ class Hopfield(Network):
 
     def train(self):
 
-        """
-        Train weights according to generalized Hebbian rule
-        """
+        """ Train weights according to generalized Hebbian rule """
 
         for sample in self.train_data:
             self.weights += np.outer(sample, sample)
@@ -102,17 +89,14 @@ class Hopfield(Network):
 
     def test(self):
 
-        """
-        Use each sample to synchronously test the weight matrix
-        """
+        """ Use each sample to synchronously test the weight matrix """
         
         recall = np.sign(np.dot(self.test_data, self.weights))
         return np.sum(recall != self.test_data, axis=1)
 
 class RestrictedBoltzmann(Network):
 
-    """
-    Restricted Boltzmann Machine (RBM) network model
+    """ Restricted Boltzmann Machine (RBM) network model
 
     min(KL(P_h||P_v))
     """
@@ -133,9 +117,7 @@ class RestrictedBoltzmann(Network):
 
     def train(self, error_threshold=1.1):
     
-        """
-        Train weights via contrastive divergence
-        """
+        """ Train weights via contrastive divergence """
         
         while True:
             epoch_error = 0
@@ -161,4 +143,6 @@ class RestrictedBoltzmann(Network):
                 break
 
     def test(self):
+
+        """ TO DO """
         pass

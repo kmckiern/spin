@@ -4,9 +4,7 @@ from .operators import Operators
 
 class Ensemble(Operators):
 
-    """
-    Sample system via MCMC with Gibbs Sampling
-    """
+    """ Sample system via MCMC with Gibbs Sampling """
 
     def __init__(self, system, n_samples=1):
 
@@ -19,9 +17,7 @@ class Ensemble(Operators):
     
     def flip_spin(self):
 
-        """
-        Flip random spin on lattice
-        """
+        """ Flip random spin on lattice """
 
         # identify random index
         flip_indices = []
@@ -37,9 +33,7 @@ class Ensemble(Operators):
     
     def acceptance_criterion(self, energy_f):
 
-        """
-        Gibbs acceptance
-        """
+        """ Gibbs acceptance """
 
         energy_difference = energy_f - self.energy
         gibbs_criterion = np.exp(-1. * energy_difference / self.T)
@@ -48,9 +42,7 @@ class Ensemble(Operators):
     
     def mc_step(self):
 
-        """
-        To take a step, flip a spin and check for acceptance
-        """
+        """ To take a step, flip a spin and check for acceptance """
 
         while True:
             # flip spin
@@ -62,9 +54,7 @@ class Ensemble(Operators):
     
     def check_convergence(self, energies, threshold=.3):
 
-        """
-        Converged if standard error of the energy < threshold
-        """
+        """ Converged if standard error of the energy < threshold """
 
         ste = np.std(energies) / (len(energies)**.5)
         if ste < threshold:
@@ -72,9 +62,7 @@ class Ensemble(Operators):
     
     def check_autocorrelation(self, configurations, energies, threshold=.01):
 
-        """
-        Determine autocorrelation of time series
-        """
+        """ Determine autocorrelation of time series """
 
         energies -= np.mean(energies)
         n_samples = len(energies)
@@ -89,8 +77,7 @@ class Ensemble(Operators):
     
     def run_mcmc(self, eq=False, min_steps=100):
 
-        """
-        Generate samples
+        """ Generate samples
             for mixing: until convergence criterion is met
             for eq: until desired number of independent samples found
         """
@@ -112,9 +99,7 @@ class Ensemble(Operators):
 
     def sample(self):
 
-        """
-        Run MCMC scheme on initial configuration
-        """
+        """ Run MCMC scheme on initial configuration """
         
         # equilibrate (mix) the chain
         self.run_mcmc(eq=True)
