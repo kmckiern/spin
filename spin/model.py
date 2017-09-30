@@ -28,18 +28,18 @@ class Model(object):
     def generate_RBM(self):
         self.network = RestrictedBoltzmann(self.ensemble.configuration)
 
-    def describe(self, d):
-        pprint(d)
+    def describe(self, s_obj):
+        if s_obj == None:
+            raise ValueError('object has not yet been created')
+        system_properties = s_obj.__dict__
+        pprint(system_properties)
 
     def describe_system(self):
-        system_properties = self.system.__dict__
-        self.describe(system_properties)
+        self.describe(self.system)
 
     def describe_ensemble(self):
-        ensemble_properties = self.ensemble.__dict__
-        self.describe(ensemble_properties)
+        self.describe(self.ensemble)
 
     def describe_network(self):
-        network_properties = self.network.__dict__
-        self.describe(network_properties)
+        self.describe(self.network)
 
