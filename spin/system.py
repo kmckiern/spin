@@ -23,7 +23,7 @@ class System(Operators):
         if isinstance(geometry, int):
             geometry = (geometry,)
         self.geometry = geometry
-        if configuration.any() == None:
+        if configuration == None:
             self.configuration = self.random_configuration()
         else:
             self.configuration = configuration
@@ -36,7 +36,7 @@ class System(Operators):
         """ Distribute particles according to random configuration """
 
         state = np.random.choice([-1, 1], size=self.geometry)
-        state *= self._spin
+        state *= self.spin
         return state
 
     def uniform_configuration(self, val=1):
