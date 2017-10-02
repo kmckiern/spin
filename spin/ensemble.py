@@ -60,25 +60,26 @@ class Ensemble(Operators):
         if ste < threshold:
             return True
     
-    def check_autocorrelation(self, configurations, energies, threshold=.01):
+    def check_autocorrelation(self, configurations, energies, threshold=.01,
+            min_lag=50):
 
         """ Determine autocorrelation of time series """
 
         energies -= np.mean(energies)
         n_samples = len(energies)
-        for lag in np.arange(50, n_samples, 2):
+        for lag in np.arange(min_lag, n_samples, 2):
             ac = np.corrcoef(energies[:n_samples-lag], 
                     energies[lag:n_samples])[0,1]
-            ac = np.abs(ac)
-            if ac < threshold:
+            if np.abs(ac) < threshold:
                 uncorrelated = configurations[::lag]
                 if len(uncorrelated) > self.n_samples:
                     self.configuration = np.array(uncorrelated[:self.n_samples])
                     return True
                 else:
-                    return lag
+                    break
+        return lag
     
-    def run_mcmc(self, eq=False, min_steps=200):
+    def run_mcmc(self, eq=False, min_steps=1000, auto_multiplier=1.4):
 
         """ Generate samples
             for mixing: until convergence criterion is met
@@ -104,7 +105,7 @@ class Ensemble(Operators):
                         break
                     else:
                         # if not enough configurations, run for lag more steps
-                        min_steps = autoc * self.n_samples * 1.5
+                        min_steps = self.n_samples * autoc * auto_multiplier
 
     def sample(self):
 
