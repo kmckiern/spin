@@ -66,7 +66,7 @@ class Ensemble(Operators):
 
         energies -= np.mean(energies)
         n_samples = len(energies)
-        for lag in np.arange(0, n_samples, 2):
+        for lag in np.arange(50, n_samples, 2):
             ac = np.corrcoef(energies[:n_samples-lag], 
                     energies[lag:n_samples])[0,1]
             ac = np.abs(ac)
@@ -76,7 +76,7 @@ class Ensemble(Operators):
                     self.configuration = np.array(uncorrelated[:self.n_samples])
                     return True
                 else:
-                    return False
+                    return lag
     
     def run_mcmc(self, eq=False, min_steps=200):
 
@@ -95,10 +95,16 @@ class Ensemble(Operators):
                 if eq:
                     if self.check_convergence(energies):
                         break
-                elif self.check_autocorrelation(configurations, energies):
-                    break
-                # if not converged/too correlated, run for 2x more steps
-                min_steps *= 2
+                    else:
+                        # if not converged, run for 2x more steps
+                        min_steps *= 2
+                else:
+                    autoc = self.check_autocorrelation(configurations, energies)
+                    if autoc == True:
+                        break
+                    else:
+                        # if not enough configurations, run for lag more steps
+                        min_steps = autoc * self.n_samples * 1.5
 
     def sample(self):
 
