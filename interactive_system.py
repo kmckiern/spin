@@ -18,7 +18,6 @@ if os.path.exists(example_IC):
     x.generate_system(geometry=geo, T=temp, configuration=np.load(example_IC))
 else:
     x.generate_system(geometry=geo, T=temp)
-    x.random_configuration()
 
 # generate ensemble from system
 x.generate_ensemble(n_samples=8)
