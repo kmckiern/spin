@@ -69,13 +69,16 @@ class Ensemble(Operators):
         for lag in np.arange(0, n_samples, 2):
             ac = np.corrcoef(energies[:n_samples-lag], 
                     energies[lag:n_samples])[0,1]
+            ac = np.abs(ac)
             if ac < threshold:
                 uncorrelated = configurations[::lag]
                 if len(uncorrelated) > self.n_samples:
                     self.configuration = np.array(uncorrelated[:self.n_samples])
                     return True
+                else:
+                    return False
     
-    def run_mcmc(self, eq=False, min_steps=100):
+    def run_mcmc(self, eq=False, min_steps=200):
 
         """ Generate samples
             for mixing: until convergence criterion is met
