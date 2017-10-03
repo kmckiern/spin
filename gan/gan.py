@@ -17,13 +17,13 @@ from spin import Model
 # Define spin system and generate training dataset
 geometry = (16,16)
 T = 3.
-n_samples = 2000
+samples = 2000
 
 x = Model()
 x.generate_system(geometry=geometry, T=T)
-x.generate_ensemble(n_samples=n_samples)
+x.generate_ensemble(n_samples=samples)
 dataset = x.ensemble.configuration
-dataset = dataset.reshape(n_samples, -1)
+dataset = dataset.reshape(samples, -1)
 
 # Define GAN parameters
 MODE = 'wgan-gp' # dcgan, wgan, or wgan-gp
@@ -35,7 +35,7 @@ ITERS = 20000 # How many generator iterations to train for
 OUTPUT_DIM = 16*16 # Number of pixels
 N = geometry[0] # Ising 2D Dim
 EVAL_BATCHES = 40 # Number of batches per eval step
-DATASET_SIZE = n_samples # Number of samples to generate for train dataset
+DATASET_SIZE = samples # Number of samples to generate for train dataset
 Z_DIM = 2*2*4*DIM
 
 lib.print_model_settings(locals().copy())
@@ -94,7 +94,7 @@ def Generator(n_samples, noise=None):
 def Discriminator(inputs):
 
     # [n_samples, OUTPUT_DIM] -> [n_samples, 16, 16, 1]
-    output = tf.reshape(inputs, [n_samples, 1, N, N])
+    output = tf.reshape(inputs, [-1, 1, N, N])
 
     # [n_samples, 16, 16, 1] -> [n_samples, 8, 8, DIM]
     output = lib.ops.conv2d.Conv2D('Discriminator.1', 1, DIM, 4, output, stride=2)
@@ -112,7 +112,7 @@ def Discriminator(inputs):
         output = lib.ops.batchnorm.Batchnorm('Discriminator.BN3', [0,2,3], output)
     output = LeakyReLU(output)
 
-    output = tf.reshape(output, [n_samples, 2*2*4*DIM])
+    output = tf.reshape(output, [-1, 2*2*4*DIM])
     output = lib.ops.linear.Linear('Discriminator.Output', 2*2*4*DIM, 1, output)
 
     return tf.reshape(output, [-1])
@@ -212,7 +212,7 @@ def inf_train_gen():
 # Train loop
 with tf.Session() as session:
 
-    session.run(tf.initialize_all_variables())
+    session.run(tf.global_variables_initializer())
 
     gen = inf_train_gen()
 
