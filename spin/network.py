@@ -1,4 +1,5 @@
 import numpy as np
+from sklearn.model_selection import train_test_split
 from .operators import Operators
 
 
@@ -37,24 +38,8 @@ class Network(Operators):
         self.data = data
 
         self.split_ratio = split_ratio
-        self.train_data, self.test_data = self.split()
-
-    def split(self):
-
-        """ ratio = test/train divide of data """
-
-        divide = int(self.n_samples * self.split_ratio)
-        train = self.data[:divide]
-        test = self.data[divide:]
-        return train, test
-
-    def random_split(self):
-
-        """ Randomizes data, then splits """
-
-        mix_ndx = np.random.permutation(self.n_samples)
-        self.data = self.data[mix_ndx]
-        self.split()
+        self.train_data, self.test_data = train_test_split(self.data,
+                train_size=self.split_ratio)
 
 class Hopfield(Network):
 
