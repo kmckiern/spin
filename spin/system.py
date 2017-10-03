@@ -23,7 +23,7 @@ class System(Operators):
         if isinstance(geometry, int):
             geometry = (geometry,)
         self.geometry = geometry
-        if configuration == None:
+        if configuration is None:
             self.configuration = self.random_configuration()
         else:
             self.configuration = configuration
