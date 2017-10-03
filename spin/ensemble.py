@@ -1,3 +1,4 @@
+from __future__ import division
 import numpy as np
 import copy
 from .operators import Operators
@@ -35,7 +36,7 @@ class Ensemble(Operators):
 
         """ Gibbs acceptance """
 
-        energy_difference = energy_f - self.energy
+        energy_difference = 2 * (energy_f - self.energy)
         gibbs_criterion = np.exp(-1. * energy_difference / self.T)
         if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
             return True
@@ -47,7 +48,7 @@ class Ensemble(Operators):
         while True:
             # flip spin
             configuration_n = self.flip_spin()
-            energy_n = self.measure_energy(configuration_n, J=-1.0)
+            energy_n = self.measure_energy(configuration_n)
             # accept according to acceptance criterion
             if self.acceptance_criterion(energy_n):
                 return configuration_n, energy_n

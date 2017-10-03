@@ -6,10 +6,11 @@ class Operators(object):
 
     """ Measure properties of particle system configuration """
 
-    def __init__(self, J=-1.0):
+    def __init__(self, J=1.0):
         if self.configuration.any() == None:
             raise ValueError('must have a configuration!')
-        self.energy = self.measure_energy(self.configuration, J)
+        self.J = J
+        self.energy = self.measure_energy(self.configuration)
         self.magnetization = self.measure_magnetization(self.configuration)
 
     def adj_kernel(self, configuration):
@@ -26,22 +27,22 @@ class Operators(object):
         center *= 0
         return kernel
 
-    def hamiltonian(self, configuration, J):
+    def hamiltonian(self, configuration):
 
         """ Evaluate hamiltonian via normalized convolution with kernel """
 
         kernel = self.adj_kernel(configuration) 
         c = filters.convolve(configuration, kernel, mode='wrap')
-        return J * np.sum(c * configuration) / np.sum(kernel)
+        return -1. * self.J * np.sum(c * configuration) / np.sum(kernel)
     
-    def measure_energy(self, configuration, J):
+    def measure_energy(self, configuration):
         
         """ Calculate energy for arbitrary dimensional configuration """
 
         if configuration.ndim > 2:
-            return np.array([self.hamiltonian(c, J=J) for c in configuration])
+            return np.array([self.hamiltonian(c) for c in configuration])
         else:
-            return self.hamiltonian(configuration, J=J)
+            return self.hamiltonian(configuration)
     
     def measure_magnetization(self, configuration):
 
@@ -52,5 +53,4 @@ class Operators(object):
         else:
             n_spin = configuration.size
 
-        return configuration.sum(-1).sum(-1) / n_spin
-    
+        return np.abs(configuration.sum(-1).sum(-1) / n_spin)
