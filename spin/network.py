@@ -1,5 +1,6 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.neural_network import BernoulliRBM
 from .operators import Operators
 
 
@@ -86,48 +87,23 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, data, learning_rate=.05, split_ratio=.8, n_hidden=None):
+    def __init__(self, data, split_ratio=.8, learning_rate=[0.1, 0.01, .001],
+	n_hidden=None, n_iter=None):
 
         super(RestrictedBoltzmann, self).__init__(data, split_ratio)
+
         self.learning_rate = learning_rate
-        if n_hidden == None:
+        if n_hidden is None:
             n_hidden = int(self.n_neurons * .5)
         self.n_hidden = n_hidden
-        # randomly initialize 
-        self.weights = np.random.normal(0, .1, (self.n_neurons, self.n_hidden))
-        self.v_bias = np.random.rand(self.n_neurons)
-        self.h_bias = np.random.rand(self.n_hidden)
+        self.n_iter = n_iter 
 
-        self.train()
+        self.rbm = self.build()
 
-    def train(self, error_threshold=1.1):
+    def build(self, error_threshold=1.1):
     
         """ Train weights via contrastive divergence """
-        
-        while True:
-            epoch_error = 0
-            for sample in self.train_data:
-                self.visible = sample
 
-                # forward
-                p_hv = conditional_prob(self.visible, self.weights, self.h_bias)
-                self.hidden = binary_sig_prob(p_hv)
-                del_f = np.outer(self.visible, self.hidden)
-
-                # backward
-                p_vh = conditional_prob(self.hidden, self.weights.T, self.v_bias)
-                self.visible = binary_sig_prob(p_vh)
-                del_b = np.outer(self.hidden, self.visible).T
-                
-                self.weights += self.learning_rate * (del_f - del_b)
-
-                epoch_error += np.sum(self.visible - sample)**2
- 
-            print (epoch_error)
-            if epoch_error < error_threshold:
-                break
-
-    def test(self):
-
-        """ TO DO """
-        pass
+        rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True)
+        rbm.fit(self.train_data)
+        return rbm
