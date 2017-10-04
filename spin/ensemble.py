@@ -1,7 +1,7 @@
 from __future__ import division
 import numpy as np
 import copy
-from .operators import Operators
+from spin.operators import Operators
 
 class Ensemble(Operators):
 

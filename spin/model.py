@@ -1,6 +1,6 @@
-from .system import System
-from .ensemble import Ensemble
-from .network import Hopfield, RestrictedBoltzmann
+from spin.system import System
+from spin.ensemble import Ensemble
+from spin.network import Hopfield, RestrictedBoltzmann
 
 import numpy as np
 import copy

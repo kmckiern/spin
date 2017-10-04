@@ -1,25 +1,66 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import BernoulliRBM
-from .operators import Operators
 
 
-class Network(Operators):
+class Network(object):
 
     """ Base class for all network models """
 
-    def __init__(self, data, split_ratio=.8):
+    def __init__(self, data, split_ratio=.8, flatten=True):
 
         self.n_samples, nr, nc = data.shape
         self.n_neurons = nr*nc
 
-        # easier to do this using 1D array of values
-        data = data.reshape(self.n_samples, self.n_neurons)
-        self.data = data
+        if flatten:
+            data = data.reshape(self.n_samples, self.n_neurons)
+            self.data = data
 
         self.split_ratio = split_ratio
         self.train_data, self.test_data = train_test_split(self.data,
                 train_size=self.split_ratio)
+
+
+class Hopfield(Network):
+
+    """
+    Hopfield network model
+    doi:10.1073/pnas.79.8.2554 
+    http://web.cs.ucla.edu/~rosen/161/notes/hopfield.html
+
+    Parameters
+    ----------
+    data : binary arrays of spin configurations
+    split_ratio : test/train ratio
+    """
+
+    def __init__(self, data, split_ratio=.8):
+
+        super(Hopfield, self).__init__(data, split_ratio)
+
+        self.hopfield = {}
+        self.train()
+        self.test() 
+
+    def train(self):
+
+        """ Train weights according to generalized Hebbian rule """
+
+        weights = np.zeros((self.n_neurons, self.n_neurons))
+        for sample in self.train_data:
+            weights += np.outer(sample, sample)
+        # normalize, and zero diagonal
+        weights /= len(self.train_data)
+        np.fill_diagonal(weights, 0)
+        self.hopfield['weights'] = weights
+
+    def test(self):
+
+        """ Use each sample to synchronously test the weight matrix """
+        
+        recall = np.sign(np.dot(self.test_data, self.hopfield['weights']))
+        test_error = np.sum(recall != self.test_data, axis=1)
+        self.hopfield['test_error'] = test_error
 
 
 class RestrictedBoltzmann(Network):
@@ -29,14 +70,11 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, data, split_ratio=.8, 
-            batch_size = None,
+    def __init__(self, data, batch_size = None,
             learning_rate = [0.1, 0.01, .001],
             n_iter = [100, 1000, 10000]):
 
-        self.rbm = None
-
-        super(RestrictedBoltzmann, self).__init__(data, split_ratio)
+        super(RestrictedBoltzmann, self).__init__(data)
 
         self.n_hidden = int(self.n_neurons * .5)
         if batch_size is None:
@@ -46,6 +84,7 @@ class RestrictedBoltzmann(Network):
                   'learning_rate': learning_rate,
                   'n_iter': n_iter}
 
+        self.rbm = None
         self.build(optimize_h=True)
 
     def optimize_hyperparams(self):
