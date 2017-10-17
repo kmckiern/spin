@@ -1,60 +1,25 @@
 import numpy as np
-from .operators import Operators
+from sklearn.model_selection import train_test_split
+from sklearn.neural_network import BernoulliRBM
 
 
-def conditional_prob(a, b, epsilon):
-
-    """ P(a_i|b) """
-
-    return np.dot(a, b) + epsilon
-
-def sigmoid(x):
-
-    """ Common activation function, strangely not in numpy afaik """
-
-    return 1 / (1 + np.exp(-x))
-
-def binary_sig_prob(probs):
-
-    """ Apply activation to probabilities, and threshold """
-
-    activated = np.round(sigmoid(probs))
-    activated[activated == 0] = -1
-    return activated
-
-
-class Network(Operators):
+class Network(object):
 
     """ Base class for all network models """
 
-    def __init__(self, data, split_ratio=.8):
+    def __init__(self, data, split_ratio=.8, flatten=True):
 
         self.n_samples, nr, nc = data.shape
         self.n_neurons = nr*nc
 
-        # easier to do this using 1D array of values
-        data = data.reshape(self.n_samples, self.n_neurons)
-        self.data = data
+        if flatten:
+            data = data.reshape(self.n_samples, self.n_neurons)
+            self.data = data
 
         self.split_ratio = split_ratio
-        self.train_data, self.test_data = self.split()
+        self.train_data, self.test_data = train_test_split(self.data,
+                train_size=self.split_ratio)
 
-    def split(self):
-
-        """ ratio = test/train divide of data """
-
-        divide = int(self.n_samples * self.split_ratio)
-        train = self.data[:divide]
-        test = self.data[divide:]
-        return train, test
-
-    def random_split(self):
-
-        """ Randomizes data, then splits """
-
-        mix_ndx = np.random.permutation(self.n_samples)
-        self.data = self.data[mix_ndx]
-        self.split()
 
 class Hopfield(Network):
 
@@ -72,27 +37,31 @@ class Hopfield(Network):
     def __init__(self, data, split_ratio=.8):
 
         super(Hopfield, self).__init__(data, split_ratio)
-        self.weights = np.zeros((self.n_neurons, self.n_neurons))
 
+        self.hopfield = {}
         self.train()
-        self.test_errors = self.test()
+        self.test() 
 
     def train(self):
 
         """ Train weights according to generalized Hebbian rule """
 
+        weights = np.zeros((self.n_neurons, self.n_neurons))
         for sample in self.train_data:
-            self.weights += np.outer(sample, sample)
+            weights += np.outer(sample, sample)
         # normalize, and zero diagonal
-        self.weights /= len(self.train_data)
-        np.fill_diagonal(self.weights, 0)
+        weights /= len(self.train_data)
+        np.fill_diagonal(weights, 0)
+        self.hopfield['weights'] = weights
 
     def test(self):
 
         """ Use each sample to synchronously test the weight matrix """
         
-        recall = np.sign(np.dot(self.test_data, self.weights))
-        return np.sum(recall != self.test_data, axis=1)
+        recall = np.sign(np.dot(self.test_data, self.hopfield['weights']))
+        test_error = np.sum(recall != self.test_data, axis=1)
+        self.hopfield['test_error'] = test_error
+
 
 class RestrictedBoltzmann(Network):
 
@@ -101,48 +70,48 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, data, learning_rate=.05, split_ratio=.8, n_hidden=None):
+    def __init__(self, data, batch_size = None,
+            learning_rate = [0.1, 0.01, .001],
+            n_iter = [100, 1000, 10000]):
 
-        super(RestrictedBoltzmann, self).__init__(data, split_ratio)
-        self.learning_rate = learning_rate
-        if n_hidden == None:
-            n_hidden = int(self.n_neurons * .5)
-        self.n_hidden = n_hidden
-        # randomly initialize 
-        self.weights = np.random.normal(0, .1, (self.n_neurons, self.n_hidden))
-        self.v_bias = np.random.rand(self.n_neurons)
-        self.h_bias = np.random.rand(self.n_hidden)
+        super(RestrictedBoltzmann, self).__init__(data)
 
-        self.train()
+        self.n_hidden = int(self.n_neurons * .5)
+        if batch_size is None:
+            batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
 
-    def train(self, error_threshold=1.1):
+        self.hypers = {'batch_size': batch_size,
+                  'learning_rate': learning_rate,
+                  'n_iter': n_iter}
+
+        self.rbm = None
+        self.build(optimize_h=True)
+
+    def optimize_hyperparams(self):
+
+        """ Optimize hyperparams, score using pseudo-likelihood """
+
+        import itertools
+
+        hyper_ps = sorted(self.hypers)
+        combs = list(itertools.product(*(self.hypers[name] for name in hyper_ps)))
+        scores = {}
+        for cndx, c in enumerate(combs):
+            sub_dict = dict(zip(hyper_ps, c))
+            rbm = BernoulliRBM(n_components=self.n_hidden, **sub_dict)
+            rbm.fit(self.train_data)
+            score = np.sum(rbm.score_samples(self.test_data))
+            scores[score] = sub_dict
+        best_score = max(scores.keys())
+        self.hypers = scores[best_score]
+
+    def build(self, optimize_h=False):
     
         """ Train weights via contrastive divergence """
-        
-        while True:
-            epoch_error = 0
-            for sample in self.train_data:
-                self.visible = sample
 
-                # forward
-                p_hv = conditional_prob(self.visible, self.weights, self.h_bias)
-                self.hidden = binary_sig_prob(p_hv)
-                del_f = np.outer(self.visible, self.hidden)
-
-                # backward
-                p_vh = conditional_prob(self.hidden, self.weights.T, self.v_bias)
-                self.visible = binary_sig_prob(p_vh)
-                del_b = np.outer(self.hidden, self.visible).T
-                
-                self.weights += self.learning_rate * (del_f - del_b)
-
-                epoch_error += np.sum(self.visible - sample)**2
- 
-            print (epoch_error)
-            if epoch_error < error_threshold:
-                break
-
-    def test(self):
-
-        """ TO DO """
-        pass
+        if optimize_h:
+            self.optimize_hyperparams()
+        rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True,
+                **self.hypers)
+        rbm.fit(self.train_data)
+        self.rbm = rbm
