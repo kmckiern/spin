@@ -5,6 +5,7 @@ import os
 import numpy as np
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import FormatStrFormatter
 import seaborn as sns
 import pandas as pd
 
@@ -16,7 +17,7 @@ import IPython
 
 
 def gen_samples(temp):
-    geo = (8,8)
+    geo = (16, 16)
     x, y = geo
     n_samples = 10000
 
@@ -42,9 +43,11 @@ def gen_samples(temp):
     return [temp, mag, avg_mag, var_mag]
 
 tc = 2. / np.log(1 + 2**.5)
-temps = [tc * (.1 * i) for i in range(6,18)]
+temps = np.arange(-1, 1, .1)
+temps[10] = 0
+temps += tc
 
-p = mp.Pool(8)
+p = mp.Pool(4)
 out = p.map(gen_samples, temps)
 p.close()
 
@@ -58,8 +61,19 @@ df = pd.DataFrame(mags)
 df = df.T
 df['T'] = df.index / tc
 dfm = pd.melt(df, id_vars=['T'])
-sns.violinplot(x='T', y='value', data=dfm)
+ax = sns.violinplot(x='T', y='value', data=dfm)
+
 plt.ylabel('<M>')
+
+als = []
+labels = ax.get_xticklabels()
+for label in labels:
+    als.append(label.get_text()[:5])
+ax.set_xticklabels(als)
+
+for tick in ax.get_xticklabels():
+    tick.set_rotation(45)
+
 plt.savefig('signed_samples/mag.png')
 
 IPython.embed()
