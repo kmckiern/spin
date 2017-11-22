@@ -8,16 +8,12 @@ import IPython
 # lattice and system parameters
 geo = (6,6)
 temp = 3
-example_IC = os.path.join('.', 'samples/config.npy')
 
 # create model object
 x = Model()
 
 # create a system, with or without an IC
-if os.path.exists(example_IC):
-    x.generate_system(geometry=geo, T=temp, configuration=np.load(example_IC))
-else:
-    x.generate_system(geometry=geo, T=temp)
+x.generate_system(geometry=geo, T=temp)
 
 # generate ensemble from system
 x.generate_ensemble(n_samples=8)
