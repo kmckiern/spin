@@ -53,7 +53,7 @@ class Ensemble(Operators):
             if self.acceptance_criterion(energy_n):
                 return configuration_n, energy_n
     
-    def check_convergence(self, energies, threshold=.3):
+    def check_convergence(self, energies, threshold=.05):
 
         """ Converged if standard error of the energy < threshold """
 
@@ -80,7 +80,7 @@ class Ensemble(Operators):
                     break
         return lag
     
-    def run_mcmc(self, eq=False, min_steps=1000, auto_multiplier=1.4):
+    def run_mcmc(self, eq=False, min_steps=10000, auto_multiplier=1.4):
 
         """ Generate samples
             for mixing: until convergence criterion is met
