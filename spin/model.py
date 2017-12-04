@@ -1,10 +1,13 @@
-from spin.system import System
-from spin.ensemble import Ensemble
-from spin.network import Hopfield, RestrictedBoltzmann
+import os
 
 import numpy as np
 import copy
 from pprint import pprint
+import pickle
+
+from spin.system import System
+from spin.ensemble import Ensemble
+from spin.network import Hopfield, RestrictedBoltzmann
 
 
 class Model(object):
@@ -43,3 +46,16 @@ class Model(object):
     def describe_network(self):
         self.describe(self.network)
 
+    def save_model(self, name='model.pkl'):
+        if os.path.exists(name):
+            raise ValueError('model with this name already exists')
+        with open(name, 'wb') as f:
+            pickle.dump(self, f)
+
+    def load_model(self, name='model.pkl'):
+        if not os.path.exists(name):
+            raise ValueError('model does not exists')
+        with open(name, 'rb') as f:
+            obj = pickle.load(f)
+        for key in obj.__dict__:
+            setattr(self, key, obj.__dict__[key])
