@@ -1,6 +1,7 @@
 from __future__ import division
 import numpy as np
 from scipy.ndimage import filters 
+import IPython
 
 class Operators(object):
 
@@ -16,14 +17,14 @@ class Operators(object):
     def adj_kernel(self, configuration):
 
         """ Creates adjecency kernel for arbitrary dimensional array """
-
         # create kernel of correct shape
         kernel = np.ones(configuration.shape)
         kernel = kernel[tuple(slice(0, 3) for i in kernel.shape)]
         # zero non adjacent / center
-        non_adj = kernel[tuple(slice(None, None, j-1) for j in kernel.shape)]
-        non_adj *= 0
-        center = kernel[tuple(slice(1, 2, j) for j in kernel.shape)]
+        if kernel.ndim > 1:
+            non_adj = kernel[tuple(slice(None, None, j-1) for j in kernel.shape)]
+            non_adj *= 0
+        center = kernel[tuple(slice(j-2, j-1, j) for j in kernel.shape)]
         center *= 0
         return kernel
 

@@ -22,6 +22,8 @@ class System(Operators):
         self.spin = spin
         if isinstance(geometry, int):
             geometry = (geometry,)
+        if geometry[-1] == 1:
+            geometry = (geometry[0],)
         self.geometry = geometry
         if configuration is None:
             self.configuration = self.random_configuration()
