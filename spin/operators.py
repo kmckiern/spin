@@ -47,11 +47,16 @@ class Operators(object):
     
     def measure_magnetization(self, configuration):
 
-        """ Given by total spin value """
+        """ Given by normalized sum over all spin values """
 
-        if configuration.ndim > 2:
-            n_spin = configuration[0].size
-        else:
-            n_spin = configuration.size
+        n_spin = np.prod(self.geometry)
 
-        return np.abs(configuration.sum(-1).sum(-1) / n_spin)
+        for d in range(len(self.geometry)):
+            if d == 0:
+                mag = configuration.sum(-1)
+            else:
+                mag = mag.sum(-1)
+        mag = mag / n_spin
+        mag = np.abs(mag)
+
+        return mag
