@@ -75,6 +75,7 @@ class Ensemble(Operators):
                 uncorrelated = configurations[::lag]
                 if len(uncorrelated) > self.n_samples:
                     self.configuration = np.array(uncorrelated[:self.n_samples])
+                    self.energies = np.array(energies[::lag][:self.n_samples])
                     return True
                 else:
                     break
