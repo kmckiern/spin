@@ -9,13 +9,17 @@ class Network(object):
 
     def __init__(self, data, split_ratio=.8, flatten=True):
 
-        self.n_samples, nr, nc = data.shape
-        self.n_neurons = nr*nc
+        self.n_samples = data.shape[0]
 
-        if flatten:
-            data = data.reshape(self.n_samples, self.n_neurons)
-            self.data = data
+        if data.ndim == 2:
+            self.n_neurons = data.shape[-1]
+        elif data.ndim == 3:
+            nr, nc = data.shape[1:]
+            self.n_neurons = nr*nc
+            if flatten:
+                data = data.reshape(self.n_samples, self.n_neurons)
 
+        self.data = data
         self.split_ratio = split_ratio
         self.train_data, self.test_data = train_test_split(self.data,
                 train_size=self.split_ratio)
