@@ -8,6 +8,7 @@ import pickle
 from spin.system import System
 from spin.ensemble import Ensemble
 from spin.network import Hopfield, RestrictedBoltzmann
+from spin.plot import plot_ensemble
 
 
 class Model(object):
@@ -42,6 +43,7 @@ class Model(object):
 
     def describe_ensemble(self):
         self.describe(self.ensemble)
+        plot_ensemble(self)
 
     def describe_network(self):
         self.describe(self.network)
@@ -57,5 +59,6 @@ class Model(object):
             raise ValueError('model does not exists')
         with open(name, 'rb') as f:
             obj = pickle.load(f)
+            obj.save_path = name.split('.pkl')[0]
         for key in obj.__dict__:
             setattr(self, key, obj.__dict__[key])

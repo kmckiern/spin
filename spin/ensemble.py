@@ -53,9 +53,10 @@ class Ensemble(Operators):
             if self.acceptance_criterion(energy_n):
                 return configuration_n, energy_n
     
-    def check_convergence(self, energies, threshold=.05):
+    def check_convergence(self, energies, threshold=.01):
 
-        """ Converged if standard error of the energy < threshold """
+        """ Converged if standard error of the energy < threshold 
+        """
 
         ste = np.std(energies) / (len(energies)**.5)
         if ste < threshold:
