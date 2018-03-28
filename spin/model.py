@@ -8,7 +8,7 @@ import pickle
 from spin.system import System
 from spin.ensemble import Ensemble
 from spin.network import Hopfield, RestrictedBoltzmann
-from spin.plot import plot_ensemble
+from spin.plot import plot_ensemble, plot_rbm
 
 
 class Model(object):
@@ -47,6 +47,7 @@ class Model(object):
 
     def describe_network(self):
         self.describe(self.network)
+        plot_rbm(self)
 
     def save_model(self, name='model.pkl'):
         if os.path.exists(name):
