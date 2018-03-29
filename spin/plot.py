@@ -1,13 +1,13 @@
+import os
 import numpy as np
 
 import matplotlib.pyplot as plt
-from matplotlib import gridspec
 import seaborn as sns
 sns.set(font_scale=.9)
 sns.set_style('white')
-
 paper_rc = {'lines.linewidth': .8}
-sns.set_context("paper", rc = paper_rc)
+sns.set_context('paper', rc = paper_rc)
+
 
 def plot_ensemble(model):
 
@@ -48,7 +48,7 @@ def plot_ensemble(model):
     ax.set_xlabel('MC sample')
 
     plt.tight_layout(pad=0.1)
-    plt.savefig(model.save_path + '_ensemble.png', dpi=200)
+    plt.savefig(os.path.join(model.save_path, 'ensemble.png'), dpi=200)
 
 
 def plot_rbm(model):
@@ -77,7 +77,7 @@ def plot_rbm(model):
     ax.set_yticklabels([0, n_h])
 
     plt.tight_layout()
-    plt.savefig(model.save_path + '_rbm.png', dpi=200)
+    plt.savefig(os.path.join(model.save_path, 'rbm.png'), dpi=200)
 
     f, axs = plt.subplots(h_rs, h_rs)
     faxs = axs.flat
@@ -93,4 +93,4 @@ def plot_rbm(model):
         c_ax.set_xticks([])
 
     plt.tight_layout(pad=0.1)
-    plt.savefig(model.save_path + '_rbm_hidden.png', dpi=200)
+    plt.savefig(os.path.join(model.save_path, 'activations.png'), dpi=200)

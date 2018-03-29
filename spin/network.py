@@ -75,7 +75,7 @@ class RestrictedBoltzmann(Network):
     """
 
     def __init__(self, data, batch_size = None,
-            learning_rate = [0.1, 0.01, .001],
+            learning_rate = [0.01, .001, .0001],
             n_iter = [100, 1000, 10000]):
 
         super(RestrictedBoltzmann, self).__init__(data)
@@ -106,6 +106,7 @@ class RestrictedBoltzmann(Network):
             rbm.fit(self.train_data)
             score = np.sum(rbm.score_samples(self.test_data))
             scores[score] = sub_dict
+        self.test_scores = scores
         best_score = max(scores.keys())
         self.hypers = scores[best_score]
 

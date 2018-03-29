@@ -20,8 +20,12 @@ class Model(object):
         self.ensemble = None
         self.network = None
 
-    def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
+    def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None,
+                        save_path=None):
         self.system = System(T, spin, geometry, configuration)
+        self.save_path = save_path
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
 
     def generate_ensemble(self, n_samples=1):
         self.ensemble = Ensemble(self.system, n_samples)
@@ -50,9 +54,10 @@ class Model(object):
         plot_rbm(self)
 
     def save_model(self, name='model.pkl'):
-        if os.path.exists(name):
+        file_out = os.path.join(self.save_path, name)
+        if os.path.exists(file_out):
             raise ValueError('model with this name already exists')
-        with open(name, 'wb') as f:
+        with open(file_out, 'wb') as f:
             pickle.dump(self, f)
 
     def load_model(self, name='model.pkl'):
@@ -60,6 +65,5 @@ class Model(object):
             raise ValueError('model does not exists')
         with open(name, 'rb') as f:
             obj = pickle.load(f)
-            obj.save_path = name.split('.pkl')[0]
         for key in obj.__dict__:
             setattr(self, key, obj.__dict__[key])
