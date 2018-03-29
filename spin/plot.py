@@ -16,16 +16,23 @@ def plot_ensemble(model):
 
     ensemble = model.ensemble
     n_samples = ensemble.n_samples
+    n_particles = ensemble.geometry[0]
+
     data = ['configuration', 'energies', 'magnetization']
 
     f, axs = plt.subplots(3, 2, gridspec_kw={'width_ratios':[3, 1]})
     for i, ds_lbl in enumerate(data):
         ds = ensemble.__dict__[ds_lbl]
+
         ax = axs[i, 0]
         marg = axs[i, 1]
         if i == 0:
             sns.heatmap(ds.T, cbar=False, cmap='coolwarm', ax=ax)
-            sns.distplot(ds.T.sum(axis=0), color='k', vertical=True, ax=marg)
+            sns.barplot(ds.sum(axis=0), np.arange(n_particles), color='k',
+                        orient='h', ax=marg)
+            marg.set_yticks([0, n_particles])
+
+            marg.set_yticklabels([0, n_particles])
         else:
             sns.tsplot(ds, color='k', ax=ax)
             sns.distplot(ds, color='k', vertical=True, ax=marg)
@@ -35,6 +42,7 @@ def plot_ensemble(model):
         ax.set_xticks([])
         ax.set_yticks([])
         ax.set_ylabel(ds_lbl)
+
     ax.set_xticks([0, n_samples])
     ax.set_xticklabels([0, n_samples])
     ax.set_xlabel('MC sample')
