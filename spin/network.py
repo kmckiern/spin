@@ -1,14 +1,17 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import BernoulliRBM
+import torch.nn as nn
 
+import IPython
 
 class Network(object):
 
     """ Base class for all network models """
 
-    def __init__(self, data, split_ratio=.8, flatten=True):
+    def __init__(self, model, split_ratio=.8, flatten=True):
 
+        data = model.ensemble.configuration
         self.n_samples = data.shape[0]
 
         if data.ndim == 2:
@@ -18,6 +21,8 @@ class Network(object):
             self.n_neurons = nr*nc
             if flatten:
                 data = data.reshape(self.n_samples, self.n_neurons)
+
+        self.n_hidden = int(self.n_neurons * .5)
 
         self.data = data
         self.split_ratio = split_ratio
@@ -31,11 +36,6 @@ class Hopfield(Network):
     Hopfield network model
     doi:10.1073/pnas.79.8.2554 
     http://web.cs.ucla.edu/~rosen/161/notes/hopfield.html
-
-    Parameters
-    ----------
-    data : binary arrays of spin configurations
-    split_ratio : test/train ratio
     """
 
     def __init__(self, data, split_ratio=.8):
@@ -74,49 +74,48 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, data, batch_size = None,
-            learning_rate = [0.01, .001, .0001],
-            n_iter = [100, 1000, 10000]):
+    def __init__(self, model):
 
-        super(RestrictedBoltzmann, self).__init__(data)
+        super(RestrictedBoltzmann, self).__init__(model)
 
-        self.n_hidden = int(self.n_neurons * .5)
-        if batch_size is None:
-            batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
-
-        self.hypers = {'batch_size': batch_size,
+        batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
+        learning_rate = [0.01, .001, .0001, .00001]
+        n_iter = [10, 100, 1000]
+        hypers = {'batch_size': batch_size,
                   'learning_rate': learning_rate,
                   'n_iter': n_iter}
 
-        self.rbm = None
-        self.build(optimize_h=True)
+        self.build(optimize_h=hypers)
 
-    def optimize_hyperparams(self):
+    def optimize_hyperparams(self, hyper_dict):
 
         """ Optimize hyperparams, score using pseudo-likelihood """
 
         import itertools
 
-        hyper_ps = sorted(self.hypers)
-        combs = list(itertools.product(*(self.hypers[name] for name in hyper_ps)))
+        hyper_ps = sorted(hyper_dict)
+        combs = list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
         scores = {}
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
-            rbm = BernoulliRBM(n_components=self.n_hidden, **sub_dict)
+            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True,
+                               **sub_dict)
             rbm.fit(self.train_data)
             score = np.sum(rbm.score_samples(self.test_data))
-            scores[score] = sub_dict
-        self.test_scores = scores
-        best_score = max(scores.keys())
-        self.hypers = scores[best_score]
+            scores[score] = rbm
 
-    def build(self, optimize_h=False):
+        best_score = max(scores.keys())
+        self.rbm = scores[best_score]
+
+    def build(self, optimize_h=None):
     
         """ Train weights via contrastive divergence """
 
-        if optimize_h:
-            self.optimize_hyperparams()
-        rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True,
-                **self.hypers)
-        rbm.fit(self.train_data)
-        self.rbm = rbm
+        if optimize_h == None:
+            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True)
+            rbm.fit(self.train_data)
+            self.rbm = rbm
+        else:
+            self.optimize_hyperparams(optimize_h)
+
+

@@ -31,10 +31,10 @@ class Model(object):
         self.ensemble = Ensemble(self.system, n_samples)
 
     def generate_hopfield(self):
-        self.network = Hopfield(self.ensemble.configuration)
+        self.network.hopfield = Hopfield(self.ensemble.configuration)
 
     def generate_RBM(self):
-        self.network = RestrictedBoltzmann(self.ensemble.configuration)
+        self.network = RestrictedBoltzmann(self)
 
     def describe(self, s_obj):
         if s_obj == None:
