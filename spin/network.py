@@ -11,60 +11,25 @@ class Network(object):
 
     def __init__(self, model, split_ratio=.8, flatten=True):
 
-        data = model.ensemble.configuration
-        self.n_samples = data.shape[0]
+        if not hasattr(self, 'data'):
 
-        if data.ndim == 2:
-            self.n_neurons = data.shape[-1]
-        elif data.ndim == 3:
-            nr, nc = data.shape[1:]
-            self.n_neurons = nr*nc
-            if flatten:
-                data = data.reshape(self.n_samples, self.n_neurons)
+            data = model.ensemble.configuration
+            self.n_samples = data.shape[0]
 
-        self.n_hidden = int(self.n_neurons * .5)
+            if data.ndim == 2:
+                self.n_neurons = data.shape[-1]
+            elif data.ndim == 3:
+                nr, nc = data.shape[1:]
+                self.n_neurons = nr*nc
+                if flatten:
+                    data = data.reshape(self.n_samples, self.n_neurons)
 
-        self.data = data
-        self.split_ratio = split_ratio
-        self.train_data, self.test_data = train_test_split(self.data,
-                train_size=self.split_ratio)
+            self.n_hidden = int(self.n_neurons * .5)
 
-
-class Hopfield(Network):
-
-    """
-    Hopfield network model
-    doi:10.1073/pnas.79.8.2554 
-    http://web.cs.ucla.edu/~rosen/161/notes/hopfield.html
-    """
-
-    def __init__(self, data, split_ratio=.8):
-
-        super(Hopfield, self).__init__(data, split_ratio)
-
-        self.hopfield = {}
-        self.train()
-        self.test() 
-
-    def train(self):
-
-        """ Train weights according to generalized Hebbian rule """
-
-        weights = np.zeros((self.n_neurons, self.n_neurons))
-        for sample in self.train_data:
-            weights += np.outer(sample, sample)
-        # normalize, and zero diagonal
-        weights /= len(self.train_data)
-        np.fill_diagonal(weights, 0)
-        self.hopfield['weights'] = weights
-
-    def test(self):
-
-        """ Use each sample to synchronously test the weight matrix """
-        
-        recall = np.sign(np.dot(self.test_data, self.hopfield['weights']))
-        test_error = np.sum(recall != self.test_data, axis=1)
-        self.hopfield['test_error'] = test_error
+            self.data = data
+            self.split_ratio = split_ratio
+            self.train_data, self.test_data = train_test_split(self.data,
+                    train_size=self.split_ratio)
 
 
 class RestrictedBoltzmann(Network):
@@ -74,16 +39,19 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, model):
+    def __init__(self, model, optimize=False):
 
         super(RestrictedBoltzmann, self).__init__(model)
 
-        batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
-        learning_rate = [0.01, .001, .0001, .00001]
-        n_iter = [10, 100, 1000]
-        hypers = {'batch_size': batch_size,
-                  'learning_rate': learning_rate,
-                  'n_iter': n_iter}
+        if optimize:
+            batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
+            learning_rate = [0.01, .001, .0001, .00001]
+            n_iter = [10, 100, 1000]
+            hypers = {'batch_size': batch_size,
+                      'learning_rate': learning_rate,
+                      'n_iter': n_iter}
+        else:
+            hypers = None
 
         self.build(optimize_h=hypers)
 
@@ -117,5 +85,4 @@ class RestrictedBoltzmann(Network):
             self.rbm = rbm
         else:
             self.optimize_hyperparams(optimize_h)
-
 
