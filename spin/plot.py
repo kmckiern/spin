@@ -55,9 +55,9 @@ def plot_rbm(model):
 
     """ Plot RBM output """
 
-    rbm = model.network.rbm
-    n_v = model.network.n_neurons
-    n_h = model.network.n_hidden
+    rbm = model.RBM.rbm
+    n_v = model.RBM.n_neurons
+    n_h = model.RBM.n_hidden
     v_rs = int(np.ceil(n_v ** .5))
     h_rs = int(np.ceil(n_h ** .5))
 

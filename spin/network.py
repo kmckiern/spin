@@ -3,7 +3,6 @@ from sklearn.model_selection import train_test_split
 from sklearn.neural_network import BernoulliRBM
 import torch.nn as nn
 
-import IPython
 
 class Network(object):
 
@@ -11,31 +10,29 @@ class Network(object):
 
     def __init__(self, model, split_ratio=.8, flatten=True):
 
-        if not hasattr(self, 'data'):
+        data = model.ensemble.configuration
+        self.n_samples = data.shape[0]
 
-            data = model.ensemble.configuration
-            self.n_samples = data.shape[0]
+        if data.ndim == 2:
+            self.n_neurons = data.shape[-1]
+        elif data.ndim == 3:
+            nr, nc = data.shape[1:]
+            self.n_neurons = nr*nc
+            if flatten:
+                data = data.reshape(self.n_samples, self.n_neurons)
 
-            if data.ndim == 2:
-                self.n_neurons = data.shape[-1]
-            elif data.ndim == 3:
-                nr, nc = data.shape[1:]
-                self.n_neurons = nr*nc
-                if flatten:
-                    data = data.reshape(self.n_samples, self.n_neurons)
+        self.n_hidden = int(self.n_neurons * .5)
 
-            self.n_hidden = int(self.n_neurons * .5)
-
-            self.data = data
-            self.split_ratio = split_ratio
-            self.train_data, self.test_data = train_test_split(self.data,
-                    train_size=self.split_ratio)
+        self.data = data
+        self.split_ratio = split_ratio
+        self.train_data, self.test_data = train_test_split(self.data,
+                train_size=self.split_ratio)
 
 
 class RestrictedBoltzmann(Network):
 
-    """ Restricted Boltzmann Machine (RBM) network model
-
+    """
+    Restricted Boltzmann Machine (RBM) network model
     min(KL(P_h||P_v))
     """
 
