@@ -56,7 +56,7 @@ def plot_rbm(model):
     """ Plot RBM output """
 
     rbm = model.RBM.rbm
-    n_v = model.RBM.n_neurons
+    n_v = model.RBM.n_visible
     n_h = model.RBM.n_hidden
     v_rs = int(np.ceil(n_v ** .5))
     h_rs = int(np.ceil(n_h ** .5))
@@ -67,7 +67,7 @@ def plot_rbm(model):
     c_min = rbm_c.min()
 
     f, ax = plt.subplots()
-    sns.heatmap(rbm.components_, cbar=False, cmap='coolwarm', ax=ax)
+    sns.heatmap(rbm.components_, cmap='coolwarm', ax=ax)
 
     ax.set_xlabel('visible')
     ax.set_ylabel('hidden')
@@ -79,18 +79,3 @@ def plot_rbm(model):
     plt.tight_layout()
     plt.savefig(os.path.join(model.save_path, 'rbm.png'), dpi=200)
 
-    f, axs = plt.subplots(h_rs, h_rs)
-    faxs = axs.flat
-    for i, c_ax in enumerate(faxs):
-        if i < nc:
-            comp = rbm_c[i]
-            data = comp.reshape((v_rs, v_rs))
-            sns.heatmap(data, cbar=False, cmap='coolwarm', ax=c_ax,
-                        vmin=c_min, vmax=c_max)
-        else:
-            sns.despine(left=True, bottom=True)
-        c_ax.set_yticks([])
-        c_ax.set_xticks([])
-
-    plt.tight_layout(pad=0.1)
-    plt.savefig(os.path.join(model.save_path, 'activations.png'), dpi=200)
