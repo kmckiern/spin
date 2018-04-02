@@ -17,12 +17,13 @@ class Network(object):
     def __init__(self, model, split_ratio=.8, flatten=True):
 
         data = model.ensemble.configuration
-        ndim = model.system.n_dim
+        n_dim = model.system.n_dim
+        self.n_dim = n_dim
         self.n_samples = data.shape[0]
 
-        if ndim == 1:
+        if n_dim == 1:
             self.n_visible = data.shape[-1]
-        elif ndim == 2:
+        elif n_dim == 2:
             nr, nc = data.shape[1:]
             self.n_visible = nr*nc
             if flatten:
@@ -92,11 +93,12 @@ class RestrictedBoltzmann(Network):
 
 class AutoEncoder(nn.Module):
 
-    def __init__(self, n_visible=4, n_hidden=2, learning_rate=.01,
+    def __init__(self, n_dim, n_visible, n_hidden, learning_rate=.01,
                  batch_size=10, n_epochs=50):
 
         super(AutoEncoder, self).__init__()
 
+        self.n_dim = n_dim
         self.n_visible = n_visible
         self.n_hidden = n_hidden
         self.batch_size = batch_size
@@ -116,16 +118,23 @@ class AutoEncoder(nn.Module):
 
         train_data = torch.from_numpy(training_data).float()
         train_loader = Data.DataLoader(dataset=train_data,
-                                       batch_size=self.batch_size,
-                                       shuffle=True)
+                                       batch_size=self.batch_size)
 
+        print (self.__dict__)
         if watch_fit:
             plt.ion()
             NVIEW = 3
-            f, axs = plt.subplots(2, NVIEW)
+            f, axs = plt.subplots(2, NVIEW, figsize=(16,2))
             for ref in range(NVIEW):
                 ax = axs[0][ref]
-                sns.heatmap(training_data[ref:ref+1], ax=ax,
+                data_ref = training_data[ref]
+                if self.n_dim == 1:
+                    s_1d = data_ref.size
+                    ref_plt = data_ref.reshape(1, s_1d)
+                else:
+                    s_2d = data_ref.shape
+                    ref_plt = data_ref
+                sns.heatmap(ref_plt, ax=ax,
                             cbar=False, cmap='coolwarm', square=True)
                 ax.set_xticks([])
                 ax.set_yticks([])
@@ -144,8 +153,13 @@ class AutoEncoder(nn.Module):
                 if watch_fit:
                     for ref in range(NVIEW):
                         ax = axs[1][ref]
-                        sns.heatmap(decoded.data.numpy()[0:1], ax=ax,
-                                    cbar=False, cmap='coolwarm', square=True)
+                        data_ref = decoded.data.numpy()[ref]
+                        if self.n_dim == 2:
+                            decode_plt = data_ref.reshape(s_2d)
+                        else:
+                            decode_plt = data_ref.reshape(1, s_1d)
+                        sns.heatmap(decode_plt, ax=ax, cbar=False,
+                                    cmap='coolwarm', square=True)
                         ax.set_xticks([])
                         ax.set_yticks([])
                     plt.draw()
@@ -161,7 +175,7 @@ class VAE(Network):
 
     def __init__(self, model, optimize=False):
 
-        super(VAE, self).__init__(model)
+        super(VAE, self).__init__(model, flatten=False)
 
         if optimize:
             batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
@@ -184,8 +198,9 @@ class VAE(Network):
         scores = {}
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
-            vae = AutoEncoder(self.n_visible, self.n_hidden, **sub_dict)
-            vae.fit(self.train_data)
+            vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden,
+                              **sub_dict)
+            vae.fit(self.train_data, watch_fit=True)
             score = vae.score
             scores[score] = vae
             print(c, score)
@@ -196,8 +211,8 @@ class VAE(Network):
     def build(self, optimize_h=None):
 
         if optimize_h == None:
-            vae = AutoEncoder(self.n_visible, self.n_hidden)
-            vae.fit(self.train_data)
+            vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden)
+            vae.fit(self.train_data, watch_fit=True)
             self.vae = vae
         else:
             self.optimize_hyperparams(optimize_h)
