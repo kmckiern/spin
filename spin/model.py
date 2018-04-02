@@ -13,16 +13,16 @@ class Model(object):
 
     """ Create, equilibrate, measure, and build network of model """
 
-    def __init__(self):
+    def __init__(self, save_path='.'):
         self.system = None
         self.ensemble = None
 
-    def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None,
-                        save_path='.'):
-        self.system = System(T, spin, geometry, configuration)
         self.save_path = save_path
         if not os.path.exists(save_path):
             os.makedirs(save_path)
+
+    def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
+        self.system = System(T, spin, geometry, configuration)
 
     def generate_ensemble(self, n_samples=1, configurations=None):
         self.ensemble = Ensemble(self.system, n_samples, configurations)
