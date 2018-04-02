@@ -23,6 +23,7 @@ class Model(object):
 
     def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
         self.system = System(T, spin, geometry, configuration)
+        self.system.n_spin = self.system.configuration.size
 
     def generate_ensemble(self, n_samples=1, configurations=None):
         self.ensemble = Ensemble(self.system, n_samples, configurations)
