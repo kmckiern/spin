@@ -1,4 +1,4 @@
-import tflib as lib
+from spin.gan import tflib as lib
 
 import numpy as np
 import tensorflow as tf

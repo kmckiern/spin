@@ -2,15 +2,10 @@ import os, sys
 sys.path.append(os.getcwd())
 
 import time
-import csv
 import numpy as np
 import tensorflow as tf
 
 import tflib as lib
-import tflib.ops.linear
-import tflib.ops.conv2d
-import tflib.ops.batchnorm
-import tflib.ops.deconv2d
 
 from spin import Model
 
@@ -44,7 +39,7 @@ def LeakyReLU(x, alpha=0.2):
     return tf.maximum(alpha*x, x)
 
 def ReLULayer(name, n_in, n_out, inputs):
-    output = lib.ops.linear.Linear(
+    output = spin.gan.tflib.ops.linear.Linear(
         name+'.Linear', 
         n_in, 
         n_out, 
@@ -54,7 +49,7 @@ def ReLULayer(name, n_in, n_out, inputs):
     return tf.nn.relu(output)
 
 def LeakyReLULayer(name, n_in, n_out, inputs):
-    output = lib.ops.linear.Linear(
+    output = spin.gan.tflib.ops.linear.Linear(
         name+'.Linear', 
         n_in, 
         n_out, 
@@ -72,19 +67,19 @@ def Generator(n_samples, noise=None):
     output = tf.reshape(noise, [n_samples, 4*DIM, 2, 2])
 
     # [n_samples, 2, 2, 4*DIM] -> [n_samples, 4, 4, 2*DIM]    
-    output = lib.ops.deconv2d.Deconv2D('Generator.2', 4*DIM, 2*DIM, 5, output)
+    output = spin.gan.tflib.ops.deconv2d.Deconv2D('Generator.2', 4 * DIM, 2 * DIM, 5, output)
     if MODE == 'wgan':
-        output = lib.ops.batchnorm.Batchnorm('Generator.BN2', [0,2,3], output)
+        output = spin.gan.tflib.ops.batchnorm.Batchnorm('Generator.BN2', [0, 2, 3], output)
     output = tf.nn.relu(output)
 
     # [n_samples, 4, 4, 2*DIM] -> [n_samples, 8, 8. DIM]
-    output = lib.ops.deconv2d.Deconv2D('Generator.3', 2*DIM, DIM, 5, output)
+    output = spin.gan.tflib.ops.deconv2d.Deconv2D('Generator.3', 2 * DIM, DIM, 5, output)
     if MODE == 'wgan':
-        output = lib.ops.batchnorm.Batchnorm('Generator.BN3', [0,2,3], output)
+        output = spin.gan.tflib.ops.batchnorm.Batchnorm('Generator.BN3', [0, 2, 3], output)
     output = tf.nn.relu(output)
 
     # [n_samples, 8, 8, DIM] -> [n_samples, 16, 16, 1] 
-    output = lib.ops.deconv2d.Deconv2D('Generator.5', DIM, 1, 5, output)
+    output = spin.gan.tflib.ops.deconv2d.Deconv2D('Generator.5', DIM, 1, 5, output)
     output = tf.nn.sigmoid(output)
 
     # Rescale output [0, 1] -> [-1, 1]
@@ -97,23 +92,23 @@ def Discriminator(inputs):
     output = tf.reshape(inputs, [-1, 1, N, N])
 
     # [n_samples, 16, 16, 1] -> [n_samples, 8, 8, DIM]
-    output = lib.ops.conv2d.Conv2D('Discriminator.1', 1, DIM, 4, output, stride=2)
+    output = spin.gan.tflib.ops.conv2d.Conv2D('Discriminator.1', 1, DIM, 4, output, stride=2)
     output = LeakyReLU(output)
 
     # [n_samples, 8, 8, DIM] -> [n_samples, 4, 4, 2*DIM]
-    output = lib.ops.conv2d.Conv2D('Discriminator.2', DIM, 2*DIM, 4, output, stride=2)
+    output = spin.gan.tflib.ops.conv2d.Conv2D('Discriminator.2', DIM, 2 * DIM, 4, output, stride=2)
     if MODE == 'wgan':
-        output = lib.ops.batchnorm.Batchnorm('Discriminator.BN2', [0,2,3], output)
+        output = spin.gan.tflib.ops.batchnorm.Batchnorm('Discriminator.BN2', [0, 2, 3], output)
     output = LeakyReLU(output)
 
     # [n_samples, 4, 4, 2*DIM] -> [n_samples, 2, 2, 4*DIM]
-    output = lib.ops.conv2d.Conv2D('Discriminator.3', 2*DIM, 4*DIM, 5, output, stride=2)
+    output = spin.gan.tflib.ops.conv2d.Conv2D('Discriminator.3', 2 * DIM, 4 * DIM, 5, output, stride=2)
     if MODE == 'wgan':
-        output = lib.ops.batchnorm.Batchnorm('Discriminator.BN3', [0,2,3], output)
+        output = spin.gan.tflib.ops.batchnorm.Batchnorm('Discriminator.BN3', [0, 2, 3], output)
     output = LeakyReLU(output)
 
     output = tf.reshape(output, [-1, 2*2*4*DIM])
-    output = lib.ops.linear.Linear('Discriminator.Output', 2*2*4*DIM, 1, output)
+    output = spin.gan.tflib.ops.linear.Linear('Discriminator.Output', 2 * 2 * 4 * DIM, 1, output)
 
     return tf.reshape(output, [-1])
 
