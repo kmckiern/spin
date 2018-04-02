@@ -1,13 +1,11 @@
 import os
 
-import numpy as np
-import copy
 from pprint import pprint
 import pickle
 
 from spin.system import System
 from spin.ensemble import Ensemble
-from spin.network import RestrictedBoltzmann
+from spin.network import RestrictedBoltzmann, VAE
 from spin.plot import plot_ensemble, plot_rbm
 
 
@@ -29,8 +27,11 @@ class Model(object):
     def generate_ensemble(self, n_samples=1):
         self.ensemble = Ensemble(self.system, n_samples)
 
-    def generate_RBM(self, optimize=None):
+    def generate_RBM(self, optimize=False):
         self.RBM = RestrictedBoltzmann(self, optimize)
+
+    def generate_VAE(self, optimize=False):
+        self.VAE = VAE(self, optimize)
 
     def describe(self, s_obj):
         if s_obj == None:
