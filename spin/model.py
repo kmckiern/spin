@@ -18,14 +18,14 @@ class Model(object):
         self.ensemble = None
 
     def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None,
-                        save_path=None):
+                        save_path='.'):
         self.system = System(T, spin, geometry, configuration)
         self.save_path = save_path
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-    def generate_ensemble(self, n_samples=1):
-        self.ensemble = Ensemble(self.system, n_samples)
+    def generate_ensemble(self, n_samples=1, configurations=None):
+        self.ensemble = Ensemble(self.system, n_samples, configurations)
 
     def generate_RBM(self, optimize=False):
         self.RBM = RestrictedBoltzmann(self, optimize)

@@ -7,11 +7,16 @@ class Ensemble(Operators):
 
     """ Sample system via MCMC with Gibbs Sampling """
 
-    def __init__(self, system, n_samples=1):
+    def __init__(self, system, n_samples=1, configurations=None):
 
         self.__dict__.update(system.__dict__)
-        self.n_samples = n_samples
-        self.sample()
+
+        if configurations is None:
+            self.n_samples = n_samples
+            self.sample()
+        else:
+            self.n_samples = len(configurations)
+            self.configuration = configurations
 
         # measure ensemble
         super(Ensemble, self).__init__()
