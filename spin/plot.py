@@ -65,13 +65,6 @@ def plot_rbm(model):
     rbm = model.RBM.rbm
     n_v = model.RBM.n_visible
     n_h = model.RBM.n_hidden
-    v_rs = int(np.ceil(n_v ** .5))
-    h_rs = int(np.ceil(n_h ** .5))
-
-    rbm_c = rbm.components_
-    nc = len(rbm_c)
-    c_max = rbm_c.max()
-    c_min = rbm_c.min()
 
     f, ax = plt.subplots()
     sns.heatmap(rbm.components_, cmap='coolwarm', ax=ax)

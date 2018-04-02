@@ -17,7 +17,7 @@ class Network(object):
     def __init__(self, model, split_ratio=.8, flatten=True):
 
         data = model.ensemble.configuration
-        ndim = model.system.ndim
+        ndim = model.system.n_dim
         self.n_samples = data.shape[0]
 
         if ndim == 1:
