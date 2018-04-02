@@ -137,8 +137,8 @@ class VAE(Network):
 
         if optimize:
             batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
-            learning_rate = [0.01, .001, .0001]
-            n_epochs = [1000, 10000]
+            learning_rate = [0.01, .001]
+            n_epochs = [100, 1000]
             hypers = {'batch_size': batch_size,
                       'learning_rate': learning_rate,
                       'n_epochs': n_epochs}
@@ -160,8 +160,9 @@ class VAE(Network):
             vae.fit(self.train_data)
             score = vae.score
             scores[score] = vae
+            print(c, score)
 
-        best_score = max(scores.keys())
+        best_score = min(scores.keys())
         self.vae = scores[best_score]
 
     def build(self, optimize_h=None):
