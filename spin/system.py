@@ -1,6 +1,6 @@
 import numpy as np
-from scipy.ndimage import filters 
 from spin.operators import Operators
+
 
 class System(Operators):
 

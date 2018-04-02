@@ -3,6 +3,7 @@ import numpy as np
 import copy
 from spin.operators import Operators
 
+
 class Ensemble(Operators):
 
     """ Sample system via MCMC with Gibbs Sampling """
