@@ -25,6 +25,7 @@ class System(Operators):
         if geometry[-1] == 1:
             geometry = (geometry[0],)
         self.geometry = geometry
+        self.n_dim = len(geometry)
         if configuration is None:
             self.configuration = self.random_configuration()
         else:
