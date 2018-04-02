@@ -33,23 +33,15 @@ class Model(object):
     def generate_VAE(self, optimize=False):
         self.VAE = VAE(self, optimize)
 
-    def describe(self, s_obj):
-        if s_obj == None:
-            raise ValueError('object has not yet been created')
-        system_properties = s_obj.__dict__
-        pprint(system_properties)
-
-    def describe_system(self):
-        self.describe(self.system)
-
-    def describe_ensemble(self):
-        self.describe(self.ensemble)
-        plot_ensemble(self)
-
-    def describe_network(self, network_label):
-        self.describe(self.__dict__[network_label])
-        if network_label == 'RBM':
-            plot_rbm(self)
+    def describe(self, component, plot_component=False):
+        model_component = self.__dict__[component]
+        component_attributes = model_component.__dict__
+        pprint(component_attributes)
+        if plot_component:
+            if component == 'ensemble':
+                plot_ensemble(self)
+            elif component == 'RBM':
+                plot_rbm(self)
 
     def save_model(self, name='model.pkl'):
         file_out = os.path.join(self.save_path, name)
