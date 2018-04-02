@@ -6,6 +6,9 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.utils.data as Data
 
+import matplotlib.pyplot as plt
+import seaborn as sns
+
 
 class Network(object):
 
@@ -14,11 +17,12 @@ class Network(object):
     def __init__(self, model, split_ratio=.8, flatten=True):
 
         data = model.ensemble.configuration
+        ndim = model.system.ndim
         self.n_samples = data.shape[0]
 
-        if data.ndim == 2:
+        if ndim == 1:
             self.n_visible = data.shape[-1]
-        elif data.ndim == 3:
+        elif ndim == 2:
             nr, nc = data.shape[1:]
             self.n_visible = nr*nc
             if flatten:
@@ -105,15 +109,26 @@ class AutoEncoder(nn.Module):
             nn.Linear(n_hidden, n_visible),
             nn.Sigmoid())
 
-    def fit(self, train_data):
+    def fit(self, training_data, watch_fit=False):
 
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         compute_loss = nn.MSELoss()
 
-        train_data = torch.from_numpy(train_data).float()
+        train_data = torch.from_numpy(training_data).float()
         train_loader = Data.DataLoader(dataset=train_data,
                                        batch_size=self.batch_size,
                                        shuffle=True)
+
+        if watch_fit:
+            plt.ion()
+            NVIEW = 3
+            f, axs = plt.subplots(2, NVIEW)
+            for ref in range(NVIEW):
+                ax = axs[0][ref]
+                sns.heatmap(training_data[ref:ref+1], ax=ax,
+                            cbar=False, cmap='coolwarm', square=True)
+                ax.set_xticks([])
+                ax.set_yticks([])
 
         for epoch in range(self.n_epochs):
             for step, x in enumerate(train_loader):
@@ -125,6 +140,19 @@ class AutoEncoder(nn.Module):
                 optimizer.zero_grad()
                 error.backward()
                 optimizer.step()
+
+                if watch_fit:
+                    for ref in range(NVIEW):
+                        ax = axs[1][ref]
+                        sns.heatmap(decoded.data.numpy()[0:1], ax=ax,
+                                    cbar=False, cmap='coolwarm', square=True)
+                        ax.set_xticks([])
+                        ax.set_yticks([])
+                    plt.draw()
+                    plt.pause(0.01)
+        if watch_fit:
+            plt.ioff()
+            plt.show()
 
         self.score = error.data[0]
 
