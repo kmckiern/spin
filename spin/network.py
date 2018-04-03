@@ -11,7 +11,7 @@ class Network(object):
 
     """ Base class for all network models """
 
-    def __init__(self, model, split_ratio=.8, flatten=True):
+    def __init__(self, model, n_hidden=None, split_ratio=.8, flatten=True):
 
         data = model.ensemble.configuration
         n_dim = model.system.n_dim
@@ -26,7 +26,10 @@ class Network(object):
             if flatten:
                 data = data.reshape(self.n_samples, self.n_visible)
 
-        self.n_hidden = int(self.n_visible * .5)
+        if n_hidden is None:
+            self.n_hidden = int(self.n_visible * .5)
+        else:
+            self.n_hidden = n_hidden
 
         self.split_ratio = split_ratio
         self.train_data, self.test_data = train_test_split(data,
@@ -145,9 +148,9 @@ class AutoEncoder(nn.Module):
 
 class VAE(Network):
 
-    def __init__(self, model, hypers, optimize):
+    def __init__(self, model, n_hidden, hypers, optimize):
 
-        super(VAE, self).__init__(model, flatten=False)
+        super(VAE, self).__init__(model, n_hidden, flatten=False)
 
         self.hypers = hypers
         self.build(optimize)

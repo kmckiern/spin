@@ -6,7 +6,7 @@ import pickle
 from spin.system import System
 from spin.ensemble import Ensemble
 from spin.network import RestrictedBoltzmann, VAE
-from spin.plot import plot_ensemble, plot_rbm
+from spin.plot import plot_ensemble, plot_rbm, plot_train, plot_reconstruction
 
 
 class Model(object):
@@ -39,16 +39,17 @@ class Model(object):
 
         self.RBM = RestrictedBoltzmann(self, hypers, optimize)
 
-    def generate_VAE(self, lr=.01, batch_size=64, n_epochs=5, optimize=False):
+    def generate_VAE(self, n_hidden=None, lr=.01, batch_size=64, n_iter=5,
+                     optimize=False):
 
         hypers = {
-            'lr': lr,
+            'learning_rate': lr,
             'batch_size': batch_size,
-            'n_epochs': n_epochs
+            'n_iter': n_iter
         }
         hypers = correct_hyper_dict(hypers, optimize)
 
-        self.VAE = VAE(self, hypers, optimize)
+        self.VAE = VAE(self, n_hidden, hypers, optimize)
 
     def describe(self, component='system', plot_component=False):
         model_component = self.__dict__[component]
@@ -60,6 +61,9 @@ class Model(object):
                 plot_ensemble(self)
             elif component == 'RBM':
                 plot_rbm(self)
+            elif component == 'VAE':
+                plot_reconstruction(self)
+                plot_train(self)
 
     def save_model(self, name='model.pkl'):
         file_out = os.path.join(self.save_path, name)
