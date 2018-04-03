@@ -79,3 +79,74 @@ def plot_rbm(model):
     plt.tight_layout()
     plt.savefig(os.path.join(model.save_path, 'rbm.png'), dpi=200)
 
+
+
+def describe(self):
+    label = ' ,'.join(['batch_size ' + str(self.batch_size),
+                      'learning_rate ' + str(self.learning_rate)])
+    return label
+
+
+"""
+def plot_train(model):
+
+    In[24]: len(x.VAE.vae.train_log['encoded'])
+    Out[24]: 10
+
+    In[25]: x.VAE.vae.train_log['encoded'][0].shape
+    Out[25]: (4, 128)
+
+    In[3]: x.VAE.vae.train_log.keys()
+    Out[3]: dict_keys(['error', 'encoded', 'decoded', 'reference'])
+
+    In[4]: x.VAE.vae.train_log['reference']
+    Out[4]:
+    array([[1., 1., -1., ..., 1., 1., 1.],
+           [-1., -1., -1., ..., -1., -1., -1.],
+           [1., -1., -1., ..., 1., 1., 1.],
+           [1., 1., 1., ..., 1., 1., -1.]], dtype=float32)
+
+    In[5]: x.VAE.vae.train_log['reference'].shape
+    Out[5]: (4, 256)
+
+    In[6]: x.VAE.vae.train_log['decoded'][-1].shape
+    Out[6]: (4, 256)
+
+    if watch_fit:
+        NVIEW = 5
+        f, axs = plt.subplots(2, NVIEW, sharex=True, sharey=True,
+                              figsize=(10, 4))
+        for ref in range(NVIEW):
+            ax = axs[0][ref]
+            data_ref = training_data[ref]
+            if self.n_dim == 1:
+                s_1d = data_ref.size
+                ref_plt = data_ref.reshape(1, s_1d)
+            else:
+                s_2d = data_ref.shape
+                ref_plt = data_ref
+            sns.heatmap(ref_plt, ax=ax,
+                        cbar=False, cmap='coolwarm', square=True)
+            ax.set_xticks([])
+            ax.set_yticks([])
+
+    if watch_fit and (global_step % write_freq == 0):
+        for ref in range(NVIEW):
+            ax = axs[1][ref]
+            data_ref = decoded.data.numpy()[ref]
+            if self.n_dim == 2:
+                decode_plt = data_ref.reshape(s_2d)
+            else:
+                decode_plt = data_ref.reshape(1, s_1d)
+            sns.heatmap(decode_plt, ax=ax, cbar=False,
+                        cmap='coolwarm', square=True)
+            ax.set_xticks([])
+            ax.set_yticks([])
+            if ref == 0:
+                ax.set_title('epoch: ' + str(epoch) + ', reconstruction error: ' + str(error.data[0])[:6])
+        plt.savefig(os.path.join(save_dir, 's' + str(global_step).zfill(8) + '.png'))
+
+        sd = os.path.join(self.save_path, str(cndx + 4))
+        if not os.path.exists(sd):
+            os.mkdir(sd)
+"""
