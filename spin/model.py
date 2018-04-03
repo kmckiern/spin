@@ -28,8 +28,7 @@ class Model(object):
     def generate_ensemble(self, n_samples=1, configurations=None):
         self.ensemble = Ensemble(self.system, n_samples, configurations)
 
-    def generate_RBM(self, lr=.01, batch_size=64, n_iter=5, optimize=False):
-
+    def generate_RBM(self, n_hidden=None, lr=.01, batch_size=64, n_iter=5, optimize=False):
         hypers = {
             'learning_rate': lr,
             'batch_size': batch_size,
@@ -37,11 +36,10 @@ class Model(object):
         }
         hypers = correct_hyper_dict(hypers, optimize)
 
-        self.RBM = RestrictedBoltzmann(self, hypers, optimize)
+        self.RBM = RestrictedBoltzmann(self, n_hidden, hypers, optimize)
 
     def generate_VAE(self, n_hidden=None, lr=.01, batch_size=64, n_iter=5,
                      optimize=False):
-
         hypers = {
             'learning_rate': lr,
             'batch_size': batch_size,
@@ -63,7 +61,7 @@ class Model(object):
                 plot_rbm(self)
             elif component == 'VAE':
                 plot_reconstruction(self)
-                plot_train(self)
+                plot_train(self, component)
 
     def save_model(self, name='model.pkl'):
         file_out = os.path.join(self.save_path, name)

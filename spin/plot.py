@@ -80,13 +80,13 @@ def plot_rbm(model):
     plt.savefig(os.path.join(model.save_path, 'rbm.png'), dpi=200)
 
 
-def plot_train(model):
+def plot_train(model, n_type='VAE'):
 
     """ Plot error aafo epoch, conditioned on a set of hyperparameters `"""
 
     f, ax = plt.subplots()
 
-    trained_networks = model.VAE.trained_models
+    trained_networks = model.__dict__[n_type].trained_models
 
     scores = sorted(list(trained_networks.keys()))
     for score in scores:
@@ -101,7 +101,7 @@ def plot_train(model):
     plt.xlabel('epoch')
     plt.ylabel('MSE')
     plt.tight_layout()
-    plt.savefig(os.path.join(model.save_path, 'vae_opt.png'), dpi=200)
+    plt.savefig(os.path.join(model.save_path, n_type + '_opt.png'), dpi=200)
 
 
 def plot_reconstruction(model):

@@ -43,9 +43,9 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, model, hypers, optimize):
+    def __init__(self, model, n_hidden, hypers, optimize):
 
-        super(RestrictedBoltzmann, self).__init__(model)
+        super(RestrictedBoltzmann, self).__init__(model, n_hidden)
 
         self.hypers = hypers
         self.build(optimize)
