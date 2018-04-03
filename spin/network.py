@@ -91,17 +91,16 @@ class RestrictedBoltzmann(Network):
 
 class AutoEncoder(nn.Module):
 
-    def __init__(self, n_dim, n_visible, n_hidden, learning_rate=.01,
-                 batch_size=10, n_epochs=50):
+    def __init__(self, n_visible, n_hidden, lr, batch_size, n_epochs):
 
         super(AutoEncoder, self).__init__()
 
-        self.n_dim = n_dim
+        self.lr = lr
+        self.batch_size = batch_size
+        self.n_epochs = n_epochs
+
         self.n_visible = n_visible
         self.n_hidden = n_hidden
-        self.batch_size = batch_size
-        self.learning_rate = learning_rate
-        self.n_epochs = n_epochs
 
         self.encoder = nn.Sequential(
             nn.Linear(n_visible, n_hidden))
@@ -109,10 +108,9 @@ class AutoEncoder(nn.Module):
             nn.Linear(n_hidden, n_visible),
             nn.Sigmoid())
 
-
     def fit(self, training_data, n_track=4):
 
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
         compute_loss = nn.MSELoss()
 
         train_data = torch.from_numpy(training_data).float()
@@ -122,7 +120,6 @@ class AutoEncoder(nn.Module):
         train_log = {}
         for epoch in range(self.n_epochs):
             for step, x in enumerate(train_loader):
-
                 reference = Variable(x.view(-1, self.n_visible))
 
                 b_x = Variable(x.view(-1, self.n_visible))
@@ -147,6 +144,7 @@ class AutoEncoder(nn.Module):
                     train_log['error'].append(l_error)
                     train_log['encoded'].append(l_encode)
                     train_log['decoded'].append(l_decode)
+            print(epoch, error.data[0])
 
         self.train_log = train_log
         self.score = error.data[0]
@@ -154,37 +152,28 @@ class AutoEncoder(nn.Module):
 
 class VAE(Network):
 
-    def __init__(self, model, optimize=False):
+    def __init__(self, model, hypers, optimize):
 
         super(VAE, self).__init__(model, flatten=False)
-        self.save_path = model.save_path
 
-        if optimize:
-            batch_size = [2**i for i in range(4, int(self.n_hidden**.5)-5)]
-            learning_rate = [.01]
-            n_epochs = [10, 40]
-            hypers = {'batch_size': batch_size,
-                      'learning_rate': learning_rate,
-                      'n_epochs': n_epochs}
-        else:
-            hypers = None
+        print (hypers)
+        self.hypers = hypers
+        self.build(optimize)
 
-        self.build(optimize_h=hypers)
-
-    def optimize_hyperparams(self, hyper_dict):
+    def optimize_hyperparams(self):
 
         import itertools
 
         scores = {}
 
-        hyper_ps = sorted(hyper_dict)
+        hyper_ps = sorted(self.hypers)
         combs = \
-            list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
+            list(itertools.product(*(self.hypers[name] for name in hyper_ps)))
+        print('combs', combs)
         for cndx, c in enumerate(combs):
-
             sub_dict = dict(zip(hyper_ps, c))
 
-            vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden,
+            vae = AutoEncoder(self.n_visible, self.n_hidden,
                               **sub_dict)
             vae.fit(self.train_data)
 
@@ -196,11 +185,12 @@ class VAE(Network):
         best_score = min(scores.keys())
         self.vae = scores[best_score]
 
-    def build(self, optimize_h=None):
+    def build(self, optimize):
 
-        if optimize_h == None:
-            vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden)
+        if optimize:
+            self.optimize_hyperparams()
+        else:
+            vae = AutoEncoder(self.n_visible, self.n_hidden,
+                              **self.hypers)
             vae.fit(self.train_data)
             self.vae = vae
-        else:
-            self.optimize_hyperparams(optimize_h)

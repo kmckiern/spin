@@ -31,13 +31,30 @@ class Model(object):
     def generate_RBM(self, optimize=False):
         self.RBM = RestrictedBoltzmann(self, optimize)
 
-    def generate_VAE(self, optimize=False):
-        self.VAE = VAE(self, optimize)
+    def generate_VAE(self, lr=.01, batch_size=64, n_epochs=5, optimize=False):
 
-    def describe(self, component, plot_component=False):
+        hypers = {
+            'lr': lr,
+            'batch_size': batch_size,
+            'n_epochs': n_epochs
+        }
+
+        for element in hypers.keys():
+            val = hypers[element]
+            if optimize:
+                if not isinstance(val, list):
+                    hypers[element] = [val]
+            else:
+                if isinstance(val, list):
+                    hypers[element] = val[0]
+
+        self.VAE = VAE(self, hypers, optimize)
+
+    def describe(self, component='system', plot_component=False):
         model_component = self.__dict__[component]
         component_attributes = model_component.__dict__
         pprint(component_attributes)
+
         if plot_component:
             if component == 'ensemble':
                 plot_ensemble(self)
