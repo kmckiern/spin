@@ -6,9 +6,6 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.utils.data as Data
 
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 
 class Network(object):
 
@@ -66,7 +63,8 @@ class RestrictedBoltzmann(Network):
         import itertools
 
         hyper_ps = sorted(hyper_dict)
-        combs = list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
+        combs = \
+            list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
         scores = {}
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
@@ -111,7 +109,8 @@ class AutoEncoder(nn.Module):
             nn.Linear(n_hidden, n_visible),
             nn.Sigmoid())
 
-    def fit(self, training_data, watch_fit=False):
+
+    def fit(self, training_data, n_track=4):
 
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         compute_loss = nn.MSELoss()
@@ -120,54 +119,36 @@ class AutoEncoder(nn.Module):
         train_loader = Data.DataLoader(dataset=train_data,
                                        batch_size=self.batch_size)
 
-        print (self.__dict__)
-        if watch_fit:
-            plt.ion()
-            NVIEW = 3
-            f, axs = plt.subplots(2, NVIEW, figsize=(16,2))
-            for ref in range(NVIEW):
-                ax = axs[0][ref]
-                data_ref = training_data[ref]
-                if self.n_dim == 1:
-                    s_1d = data_ref.size
-                    ref_plt = data_ref.reshape(1, s_1d)
-                else:
-                    s_2d = data_ref.shape
-                    ref_plt = data_ref
-                sns.heatmap(ref_plt, ax=ax,
-                            cbar=False, cmap='coolwarm', square=True)
-                ax.set_xticks([])
-                ax.set_yticks([])
-
+        train_log = {}
         for epoch in range(self.n_epochs):
             for step, x in enumerate(train_loader):
-                b_x = Variable(x.view(-1, self.n_visible))
+
                 reference = Variable(x.view(-1, self.n_visible))
+
+                b_x = Variable(x.view(-1, self.n_visible))
                 encoded = self.encoder(b_x)
                 decoded = self.decoder(encoded)
+
                 error = compute_loss(decoded, reference)
+
                 optimizer.zero_grad()
                 error.backward()
                 optimizer.step()
 
-                if watch_fit:
-                    for ref in range(NVIEW):
-                        ax = axs[1][ref]
-                        data_ref = decoded.data.numpy()[ref]
-                        if self.n_dim == 2:
-                            decode_plt = data_ref.reshape(s_2d)
-                        else:
-                            decode_plt = data_ref.reshape(1, s_1d)
-                        sns.heatmap(decode_plt, ax=ax, cbar=False,
-                                    cmap='coolwarm', square=True)
-                        ax.set_xticks([])
-                        ax.set_yticks([])
-                    plt.draw()
-                    plt.pause(0.01)
-        if watch_fit:
-            plt.ioff()
-            plt.show()
+                if step == 0:
+                    l_error = error.data.numpy()[0]
+                    l_encode = encoded.data.numpy()[:n_track]
+                    l_decode = decoded.data.numpy()[:n_track]
+                    if epoch == 0:
+                        for ele in ['error', 'encoded', 'decoded']:
+                            train_log[ele] = []
+                        l_ref = reference.data.numpy()[:n_track]
+                        train_log['reference'] = l_ref
+                    train_log['error'].append(l_error)
+                    train_log['encoded'].append(l_encode)
+                    train_log['decoded'].append(l_decode)
 
+        self.train_log = train_log
         self.score = error.data[0]
 
 
@@ -176,11 +157,12 @@ class VAE(Network):
     def __init__(self, model, optimize=False):
 
         super(VAE, self).__init__(model, flatten=False)
+        self.save_path = model.save_path
 
         if optimize:
-            batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
-            learning_rate = [0.01, .001]
-            n_epochs = [100, 1000]
+            batch_size = [2**i for i in range(4, int(self.n_hidden**.5)-5)]
+            learning_rate = [.01]
+            n_epochs = [10, 40]
             hypers = {'batch_size': batch_size,
                       'learning_rate': learning_rate,
                       'n_epochs': n_epochs}
@@ -193,17 +175,23 @@ class VAE(Network):
 
         import itertools
 
-        hyper_ps = sorted(hyper_dict)
-        combs = list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
         scores = {}
+
+        hyper_ps = sorted(hyper_dict)
+        combs = \
+            list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
         for cndx, c in enumerate(combs):
+
             sub_dict = dict(zip(hyper_ps, c))
+
             vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden,
                               **sub_dict)
-            vae.fit(self.train_data, watch_fit=True)
+            vae.fit(self.train_data)
+
             score = vae.score
             scores[score] = vae
-            print(c, score)
+
+        self.trained_models = scores
 
         best_score = min(scores.keys())
         self.vae = scores[best_score]
@@ -212,7 +200,7 @@ class VAE(Network):
 
         if optimize_h == None:
             vae = AutoEncoder(self.n_dim, self.n_visible, self.n_hidden)
-            vae.fit(self.train_data, watch_fit=True)
+            vae.fit(self.train_data)
             self.vae = vae
         else:
             self.optimize_hyperparams(optimize_h)
