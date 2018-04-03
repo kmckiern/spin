@@ -28,8 +28,16 @@ class Model(object):
     def generate_ensemble(self, n_samples=1, configurations=None):
         self.ensemble = Ensemble(self.system, n_samples, configurations)
 
-    def generate_RBM(self, optimize=False):
-        self.RBM = RestrictedBoltzmann(self, optimize)
+    def generate_RBM(self, lr=.01, batch_size=64, n_iter=5, optimize=False):
+
+        hypers = {
+            'learning_rate': lr,
+            'batch_size': batch_size,
+            'n_iter': n_iter
+        }
+        hypers = correct_hyper_dict(hypers, optimize)
+
+        self.RBM = RestrictedBoltzmann(self, hypers, optimize)
 
     def generate_VAE(self, lr=.01, batch_size=64, n_epochs=5, optimize=False):
 
@@ -38,15 +46,7 @@ class Model(object):
             'batch_size': batch_size,
             'n_epochs': n_epochs
         }
-
-        for element in hypers.keys():
-            val = hypers[element]
-            if optimize:
-                if not isinstance(val, list):
-                    hypers[element] = [val]
-            else:
-                if isinstance(val, list):
-                    hypers[element] = val[0]
+        hypers = correct_hyper_dict(hypers, optimize)
 
         self.VAE = VAE(self, hypers, optimize)
 
@@ -75,3 +75,17 @@ class Model(object):
             obj = pickle.load(f)
         for key in obj.__dict__:
             setattr(self, key, obj.__dict__[key])
+
+
+def correct_hyper_dict(hypers, optimize):
+    for element in hypers.keys():
+        val = hypers[element]
+        if optimize:
+            if not isinstance(val, list):
+                hypers[element] = [val]
+        else:
+            if isinstance(val, list):
+                hypers[element] = val[0]
+    return hypers
+
+

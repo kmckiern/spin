@@ -40,53 +40,46 @@ class RestrictedBoltzmann(Network):
     min(KL(P_h||P_v))
     """
 
-    def __init__(self, model, optimize=False):
+    def __init__(self, model, hypers, optimize):
 
         super(RestrictedBoltzmann, self).__init__(model)
 
-        if optimize:
-            batch_size = [2**i for i in range(2, int(self.n_hidden**.5)+1)]
-            learning_rate = [0.01, .001, .0001, .00001]
-            n_iter = [10, 100, 1000]
-            hypers = {'batch_size': batch_size,
-                      'learning_rate': learning_rate,
-                      'n_iter': n_iter}
-        else:
-            hypers = None
+        self.hypers = hypers
+        self.build(optimize)
 
-        self.build(optimize_h=hypers)
-
-    def optimize_hyperparams(self, hyper_dict):
-
-        """ Optimize hyperparams, score using pseudo-likelihood """
+    def optimize_hyperparams(self):
 
         import itertools
 
-        hyper_ps = sorted(hyper_dict)
-        combs = \
-            list(itertools.product(*(hyper_dict[name] for name in hyper_ps)))
         scores = {}
+
+        hyper_ps = sorted(self.hypers)
+        combs = \
+            list(itertools.product(*(self.hypers[name] for name in hyper_ps)))
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
+
             rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True,
                                **sub_dict)
             rbm.fit(self.train_data)
             score = np.sum(rbm.score_samples(self.test_data))
             scores[score] = rbm
 
-        best_score = max(scores.keys())
+
+        self.trained_models = scores
+
+        best_score = min(scores.keys())
         self.rbm = scores[best_score]
 
-    def build(self, optimize_h=None):
-    
-        """ Train weights via contrastive divergence """
+    def build(self, optimize):
 
-        if optimize_h == None:
-            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True)
+        if optimize:
+            self.optimize_hyperparams()
+        else:
+            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True,
+                               **self.hypers)
             rbm.fit(self.train_data)
             self.rbm = rbm
-        else:
-            self.optimize_hyperparams(optimize_h)
 
 
 class AutoEncoder(nn.Module):
@@ -144,7 +137,6 @@ class AutoEncoder(nn.Module):
                     train_log['error'].append(l_error)
                     train_log['encoded'].append(l_encode)
                     train_log['decoded'].append(l_decode)
-            print(epoch, error.data[0])
 
         self.train_log = train_log
         self.score = error.data[0]
@@ -156,7 +148,6 @@ class VAE(Network):
 
         super(VAE, self).__init__(model, flatten=False)
 
-        print (hypers)
         self.hypers = hypers
         self.build(optimize)
 
@@ -169,7 +160,6 @@ class VAE(Network):
         hyper_ps = sorted(self.hypers)
         combs = \
             list(itertools.product(*(self.hypers[name] for name in hyper_ps)))
-        print('combs', combs)
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
 
