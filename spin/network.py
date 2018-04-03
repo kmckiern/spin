@@ -87,8 +87,7 @@ class RestrictedBoltzmann(Network):
 
 class AutoEncoder(nn.Module):
 
-    def __init__(self, n_visible, n_hidden, learning_rate, batch_size,
-                 n_iter):
+    def __init__(self, n_visible, n_hidden, learning_rate, batch_size, n_iter):
 
         super(AutoEncoder, self).__init__()
 
@@ -167,8 +166,7 @@ class VAE(Network):
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
 
-            vae = AutoEncoder(self.n_visible, self.n_hidden,
-                              **sub_dict)
+            vae = AutoEncoder(self.n_visible, self.n_hidden, **sub_dict)
             vae.fit(self.train_data)
 
             score = vae.score
@@ -184,7 +182,6 @@ class VAE(Network):
         if optimize:
             self.optimize_hyperparams()
         else:
-            vae = AutoEncoder(self.n_visible, self.n_hidden,
-                              **self.hypers)
+            vae = AutoEncoder(self.n_visible, self.n_hidden, **self.hypers)
             vae.fit(self.train_data)
             self.vae = vae
