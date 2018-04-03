@@ -84,13 +84,14 @@ class RestrictedBoltzmann(Network):
 
 class AutoEncoder(nn.Module):
 
-    def __init__(self, n_visible, n_hidden, lr, batch_size, n_epochs):
+    def __init__(self, n_visible, n_hidden, learning_rate, batch_size,
+                 n_iter):
 
         super(AutoEncoder, self).__init__()
 
-        self.lr = lr
+        self.learning_rate = learning_rate
         self.batch_size = batch_size
-        self.n_epochs = n_epochs
+        self.n_iter = n_iter
 
         self.n_visible = n_visible
         self.n_hidden = n_hidden
@@ -103,7 +104,7 @@ class AutoEncoder(nn.Module):
 
     def fit(self, training_data, n_track=4):
 
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         compute_loss = nn.MSELoss()
 
         train_data = torch.from_numpy(training_data).float()
@@ -111,7 +112,7 @@ class AutoEncoder(nn.Module):
                                        batch_size=self.batch_size)
 
         train_log = {}
-        for epoch in range(self.n_epochs):
+        for epoch in range(self.n_iter):
             for step, x in enumerate(train_loader):
                 reference = Variable(x.view(-1, self.n_visible))
 
