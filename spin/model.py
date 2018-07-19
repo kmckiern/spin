@@ -3,25 +3,43 @@ import os
 from pprint import pprint
 import pickle
 
-from spin.system import System
 from spin.ensemble import Ensemble
 from spin.network import RestrictedBoltzmann, VAE
 from spin.plot import plot_ensemble, plot_rbm, plot_train, plot_reconstruction
 
 
-class Model(object):
-
+class Model:
     """ Create, equilibrate, measure, and build network of model """
+    def __init__(self,
+                 T=1,
+                 spin=1,
+                 geometry=(1,),
+                 configuration=None,
+                 save_path='.'):
 
-    def __init__(self, save_path='.'):
-        self.system = None
-        self.ensemble = None
+        self.T = T
+        self.spin = spin
+        self.geometry = geometry
+        self.configuration = configuration
 
         self.save_path = save_path
         if not os.path.exists(save_path):
             os.makedirs(save_path)
 
-    def generate_system(self, T=1, spin=1, geometry=(1,), configuration=None):
+    def random_configuration(self):
+        """ Distribute particles according to random configuration """
+        configuration = np.random.choice([-1, 1], size=self.geometry)
+        configuration *= self.spin
+        self.configuration = configuration
+
+    def uniform_configuration(self, val=1):
+        """ Distribute particles according to uniform configuration """
+        configuration = np.ones(self.geometry)
+        configuration *= self.spin
+        self.configuration = configuration
+
+
+    def generate_system(self):
         self.system = System(T, spin, geometry, configuration)
         self.system.n_spin = self.system.configuration.size
 
@@ -89,5 +107,4 @@ def correct_hyper_dict(hypers, optimize):
             if isinstance(val, list):
                 hypers[element] = val[0]
     return hypers
-
 
