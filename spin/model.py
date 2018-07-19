@@ -38,11 +38,6 @@ class Model:
         configuration *= self.spin
         self.configuration = configuration
 
-
-    def generate_system(self):
-        self.system = System(T, spin, geometry, configuration)
-        self.system.n_spin = self.system.configuration.size
-
     def generate_ensemble(self, n_samples=1, configurations=None):
         self.ensemble = Ensemble(self.system, n_samples, configurations)
 
