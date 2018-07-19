@@ -1,127 +1,105 @@
 from __future__ import division
 import numpy as np
 import copy
-from spin.operators import Operators
+from spin.operators import measure_energy
 
 
-class Ensemble(Operators):
+def flip_spin(configuration):
+    """ Flip random spin on lattice """
 
-    """ Sample system via MCMC with Gibbs Sampling """
+    # identify random index
+    flip_indices = []
+    for dimension in configuration.shape:
+        if isinstance(dimension, int):
+            index = np.random.randint(dimension)
+            flip_indices.append(index)
+    flip_indices = tuple(flip_indices)
 
-    def __init__(self, system, n_samples=1, configurations=None):
+    configuration = copy.copy(configuration)
+    configuration[flip_indices] *= -1
+    return configuration
 
-        self.__dict__.update(system.__dict__)
 
-        if configurations is None:
-            self.n_samples = n_samples
-            self.sample()
-        else:
-            self.n_samples = len(configurations)
-            self.configuration = configurations
+def acceptance_criterion(energy_i, energy_f, T):
+    """ Gibbs acceptance """
 
-        # measure ensemble
-        super(Ensemble, self).__init__()
-    
-    def flip_spin(self):
+    energy_difference = 2 * (energy_f - energy_i)
+    gibbs_criterion = np.exp(-1. * energy_difference / T)
+    if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
+        return True
 
-        """ Flip random spin on lattice """
 
-        # identify random index
-        flip_indices = []
-        for dimension in self.geometry:
-            if isinstance(dimension, int):
-                index = np.random.randint(dimension)
-                flip_indices.append(index)
-        flip_indices = tuple(flip_indices)
+def mc_step(J, T, energy, configuration):
+    """ To take a step, flip a spin and check for acceptance """
 
-        configuration = copy.copy(self.configuration)
-        configuration[flip_indices] *= -1
-        return configuration
-    
-    def acceptance_criterion(self, energy_f):
+    while True:
+        # flip spin
+        configuration_n = flip_spin(configuration)
+        energy_n = measure_energy(J, configuration_n)
+        # accept according to acceptance criterion
+        if acceptance_criterion(energy, energy_n, T):
+            return configuration_n, energy_n
 
-        """ Gibbs acceptance """
 
-        energy_difference = 2 * (energy_f - self.energy)
-        gibbs_criterion = np.exp(-1. * energy_difference / self.T)
-        if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
-            return True
-    
-    def mc_step(self):
+def check_convergence(energies, threshold=.01):
+    """ Converged if standard error of the energy < threshold """
 
-        """ To take a step, flip a spin and check for acceptance """
+    ste = np.std(energies) / (len(energies) ** .5)
+    if ste < threshold:
+        return True
 
-        while True:
-            # flip spin
-            configuration_n = self.flip_spin()
-            energy_n = self.measure_energy(configuration_n)
-            # accept according to acceptance criterion
-            if self.acceptance_criterion(energy_n):
-                return configuration_n, energy_n
-    
-    def check_convergence(self, energies, threshold=.01):
 
-        """ Converged if standard error of the energy < threshold 
-        """
+def check_autocorrelation(configurations, energies, desired_samples, threshold=.01, min_lag=50):
+    """ Determine autocorrelation of time series """
 
-        ste = np.std(energies) / (len(energies)**.5)
-        if ste < threshold:
-            return True
-    
-    def check_autocorrelation(self, configurations, energies, threshold=.01,
-            min_lag=50):
+    energies -= np.mean(energies)
+    n_samples = len(energies)
+    for lag in np.arange(min_lag, n_samples, 2):
+        ac = np.corrcoef(energies[:n_samples - lag], energies[lag:n_samples])[0, 1]
+        if np.abs(ac) < threshold:
+            uncorrelated = configurations[::lag]
+            if len(uncorrelated) > desired_samples:
+                ensemble = np.array(uncorrelated[:desired_samples])
+                ensemble_energies = np.array(energies[::lag][:desired_samples])
+                return ensemble, ensemble_energies
+            else:
+                break
+    return lag
 
-        """ Determine autocorrelation of time series """
 
-        energies -= np.mean(energies)
-        n_samples = len(energies)
-        for lag in np.arange(min_lag, n_samples, 2):
-            ac = np.corrcoef(energies[:n_samples-lag], 
-                    energies[lag:n_samples])[0,1]
-            if np.abs(ac) < threshold:
-                uncorrelated = configurations[::lag]
-                if len(uncorrelated) > self.n_samples:
-                    self.configuration = np.array(uncorrelated[:self.n_samples])
-                    self.energies = np.array(energies[::lag][:self.n_samples])
-                    return True
-                else:
+def run_mcmc(self, eq=False, min_steps=10000, auto_multiplier=1.4):
+    """ Generate samples
+        for mixing: until convergence criterion is met
+        for eq: until desired number of independent samples found
+    """
+
+    configurations = []
+    energies = []
+    while True:
+        self.configuration, self.energy = self.mc_step()
+        configurations.append(self.configuration)
+        energies.append(self.energy)
+        if len(energies) > min_steps:
+            if eq:
+                if self.check_convergence(energies):
                     break
-        return lag
-    
-    def run_mcmc(self, eq=False, min_steps=10000, auto_multiplier=1.4):
-
-        """ Generate samples
-            for mixing: until convergence criterion is met
-            for eq: until desired number of independent samples found
-        """
-
-        configurations = []
-        energies = []
-        while True:
-            self.configuration, self.energy = self.mc_step()
-            configurations.append(self.configuration)
-            energies.append(self.energy)
-            if len(energies) > min_steps:
-                if eq:
-                    if self.check_convergence(energies):
-                        break
-                    else:
-                        # if not converged, run for 2x more steps
-                        min_steps *= 2
                 else:
-                    autoc = self.check_autocorrelation(configurations, energies)
-                    if autoc == True:
-                        break
-                    else:
-                        # if not enough configurations, run for lag more steps
-                        min_steps = self.n_samples * autoc * auto_multiplier
+                    # if not converged, run for 2x more steps
+                    min_steps *= 2
+            else:
+                autoc = self.check_autocorrelation(configurations, energies)
+                if autoc == True:
+                    break
+                else:
+                    # if not enough configurations, run for lag more steps
+                    min_steps = self.n_samples * autoc * auto_multiplier
 
-    def sample(self):
 
-        """ Run MCMC scheme on initial configuration """
-        
-        # equilibrate (mix) the chain
-        self.run_mcmc(eq=True)
-    
-        # production, get at least n_samples samples
-        self.run_mcmc()
+def sample(self):
+    """ Run MCMC scheme on initial configuration """
+
+    # equilibrate (mix) the chain
+    self.run_mcmc(eq=True)
+
+    # production, get at least n_samples samples
+    self.run_mcmc()
