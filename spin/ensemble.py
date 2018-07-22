@@ -36,6 +36,7 @@ def mc_step(J, T, energy, configuration):
         # flip spin
         configuration_n = flip_spin(configuration)
         energy_n = measure_energy(J, configuration_n)
+
         # accept according to acceptance criterion
         if acceptance_criterion(energy, energy_n, T):
             return configuration_n, energy_n
@@ -56,50 +57,43 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
     n_samples = len(energies)
     for lag in np.arange(min_lag, n_samples, 2):
         ac = np.corrcoef(energies[:n_samples - lag], energies[lag:n_samples])[0, 1]
+
         if np.abs(ac) < threshold:
             uncorrelated = configurations[::lag]
-            if len(uncorrelated) > desired_samples:
-                ensemble = np.array(uncorrelated[:desired_samples])
-                ensemble_energies = np.array(energies[::lag][:desired_samples])
-                return ensemble, ensemble_energies
+            if len(uncorrelated) >= desired_samples:
+                return lag
             else:
-                break
-    return lag
+                continue
+
+    return np.inf
 
 
-def run_mcmc(self, eq=False, min_steps=10000, auto_multiplier=1.4):
-    """ Generate samples
-        for mixing: until convergence criterion is met
-        for eq: until desired number of independent samples found
+def run_mcmc(J, T, configuration, desired_samples=1, min_steps=10000):
+    """ Generate samples until either:
+        - convergence criterion is met (chain is `mixed`)
+        - desired number of independent samples found
     """
 
-    configurations = []
-    energies = []
+    energy = measure_energy(J, configuration)
+    configurations = [configuration]
+    energies = [energy]
+
     while True:
-        self.configuration, self.energy = self.mc_step()
-        configurations.append(self.configuration)
-        energies.append(self.energy)
+        configuration, energy = mc_step(J, T, energy, configuration)
+        configurations.append(configuration)
+        energies.append(energy)
+
         if len(energies) > min_steps:
-            if eq:
-                if self.check_convergence(energies):
-                    break
-                else:
-                    # if not converged, run for 2x more steps
-                    min_steps *= 2
+
+            if desired_samples == 1:
+                if check_convergence(energies):
+                    return configurations[-1]
+
             else:
-                autoc = self.check_autocorrelation(configurations, energies)
-                if autoc == True:
-                    break
-                else:
-                    # if not enough configurations, run for lag more steps
-                    min_steps = self.n_samples * autoc * auto_multiplier
+                lag = check_autocorrelation(configurations, energies, desired_samples)
+                if lag < np.inf:
+                    ensemble = np.array(configurations)[::lag][:desired_samples]
+                    energies = np.array(energies)[::lag][:desired_samples]
+                    return ensemble, energies
 
-
-def sample(self):
-    """ Run MCMC scheme on initial configuration """
-
-    # equilibrate (mix) the chain
-    self.run_mcmc(eq=True)
-
-    # production, get at least n_samples samples
-    self.run_mcmc()
+        min_steps *= 2
