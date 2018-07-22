@@ -1,6 +1,7 @@
 import numpy as np
 from spin.ensemble import run_mcmc
 
+
 class Model:
     """ Create, equilibrate, measure, and build network of model """
 
@@ -17,7 +18,7 @@ class Model:
         configuration = np.random.choice([-1, 1], size=self.geometry)
         self.configuration = configuration
 
-    def uniform_configuration(self, val=1):
+    def uniform_configuration(self):
         """ Distribute particles according to uniform configuration """
         configuration = np.ones(self.geometry)
         self.configuration = configuration

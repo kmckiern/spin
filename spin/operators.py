@@ -6,6 +6,10 @@ from scipy.ndimage import filters
 def adj_kernel(configuration):
     """ Creates adjecency kernel for arbitrary dimensional array """
 
+    # ensure each dimension is gt 2
+    for dim_length in configuration.shape:
+        assert dim_length > 2
+
     # create kernel of correct shape
     kernel = np.ones(configuration.shape)
     kernel = kernel[tuple(slice(0, 3) for i in kernel.shape)]
