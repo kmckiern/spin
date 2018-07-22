@@ -1,5 +1,5 @@
 import numpy as np
-from ensemble import run_mcmc
+from spin.ensemble import run_mcmc
 
 class Model:
     """ Create, equilibrate, measure, and build network of model """
@@ -23,8 +23,9 @@ class Model:
         self.configuration = configuration
 
     def generate_ensemble(self, ensemble_size, eq=True):
+        """ Equilibrate configuration to T and run MCMC until ensemble_size is reached """
         if eq:
-            self.configuration = equilibrate_configuration(self.J, self.T, self.configuration)
+            self.configuration = run_mcmc(self.J, self.T, self.configuration)
         self.ensemble, self.energies = run_mcmc(self.J, self.T, self.configuration, ensemble_size)
 
 
