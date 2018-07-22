@@ -4,8 +4,11 @@ import copy
 from spin.operators import measure_energy
 
 
-def flip_spin(configuration):
+def flip_spin(configuration, seed=None):
     """ Flip random spin on lattice """
+
+    if seed is not None:
+        np.random.seed(seed)
 
     # identify random index
     flip_indices = []
@@ -20,8 +23,11 @@ def flip_spin(configuration):
     return configuration
 
 
-def acceptance_criterion(energy_i, energy_f, T):
+def acceptance_criterion(energy_i, energy_f, T, seed=None):
     """ Gibbs acceptance """
+
+    if seed is not None:
+        np.random.seed(seed)
 
     energy_difference = 2 * (energy_f - energy_i)
     gibbs_criterion = np.exp(-1. * energy_difference / T)
@@ -29,20 +35,28 @@ def acceptance_criterion(energy_i, energy_f, T):
         return True
 
 
-def mc_step(J, T, energy, configuration):
+def mc_step(J, T, configuration, seed=None):
     """ To take a step, flip a spin and check for acceptance """
+
+    if seed is not None:
+        np.random.seed(seed)
+
+    energy = measure_energy(J, configuration)
 
     while True:
         # flip spin
-        configuration_n = flip_spin(configuration)
+        configuration_n = flip_spin(configuration, seed)
         energy_n = measure_energy(J, configuration_n)
 
         # accept according to acceptance criterion
-        if acceptance_criterion(energy, energy_n, T):
+        if acceptance_criterion(energy, energy_n, T, seed):
             return configuration_n, energy_n
+        else:
+            if seed is not None:
+                break
 
 
-def check_convergence(energies, threshold=.01):
+def check_convergence(energies, threshold=.1):
     """ Converged if standard error of the energy < threshold """
 
     ste = np.std(energies) / (len(energies) ** .5)
@@ -50,7 +64,7 @@ def check_convergence(energies, threshold=.01):
         return True
 
 
-def check_autocorrelation(configurations, energies, desired_samples, threshold=.01, min_lag=50):
+def check_autocorrelation(configurations, energies, desired_samples, threshold=.01, min_lag=10):
     """ Determine autocorrelation of time series """
 
     energies -= np.mean(energies)
@@ -68,18 +82,20 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
     return np.inf
 
 
-def run_mcmc(J, T, configuration, desired_samples=1, min_steps=10000):
+def run_mcmc(J, T, configuration, desired_samples=1, min_steps=1000, seed=None):
     """ Generate samples until either:
         - convergence criterion is met (chain is `mixed`)
         - desired number of independent samples found
     """
 
-    energy = measure_energy(J, configuration)
-    configurations = [configuration]
-    energies = [energy]
+    if seed is not None:
+        np.random.seed(seed)
+
+    configurations = []
+    energies = []
 
     while True:
-        configuration, energy = mc_step(J, T, energy, configuration)
+        configuration, energy = mc_step(J, T, configuration, seed)
         configurations.append(configuration)
         energies.append(energy)
 
@@ -96,4 +112,4 @@ def run_mcmc(J, T, configuration, desired_samples=1, min_steps=10000):
                     energies = np.array(energies)[::lag][:desired_samples]
                     return ensemble, energies
 
-        min_steps *= 2
+            min_steps *= 2
