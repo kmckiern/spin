@@ -1,64 +1,43 @@
 from __future__ import division
 import numpy as np
-from scipy.ndimage import filters 
+from scipy.ndimage import filters
 
 
-class Operators(object):
+def adj_kernel(configuration):
+    """ Creates adjecency kernel for arbitrary dimensional array """
 
-    """ Measure properties of particle system configuration """
+    # create kernel of correct shape
+    kernel = np.ones(configuration.shape)
+    kernel = kernel[tuple(slice(0, 3) for i in kernel.shape)]
 
-    def __init__(self, J=1.0):
-        if self.configuration.any() == None:
-            raise ValueError('must have a configuration!')
-        self.J = J
-        self.energy = self.measure_energy(self.configuration)
-        self.magnetization = self.measure_magnetization(self.configuration)
+    # zero non adjacent / center
+    if kernel.ndim > 1:
+        non_adj = kernel[tuple(slice(None, None, j - 1) for j in kernel.shape)]
+        non_adj *= 0
+    center = kernel[tuple(slice(j - 2, j - 1, j) for j in kernel.shape)]
+    center *= 0
+    return kernel
 
-    def adj_kernel(self, configuration):
 
-        """ Creates adjecency kernel for arbitrary dimensional array """
+def measure_energy(J, configuration):
+    """ Evaluate hamiltonian via normalized convolution with kernel """
 
-        # create kernel of correct shape
-        kernel = np.ones(configuration.shape)
-        kernel = kernel[tuple(slice(0, 3) for i in kernel.shape)]
+    kernel = adj_kernel(configuration)
+    c = filters.convolve(configuration, kernel, mode='wrap')
+    return -1. * J * np.sum(c * configuration) / np.sum(kernel)
 
-        # zero non adjacent / center
-        if kernel.ndim > 1:
-            non_adj = kernel[tuple(slice(None, None, j-1) for j in kernel.shape)]
-            non_adj *= 0
-        center = kernel[tuple(slice(j-2, j-1, j) for j in kernel.shape)]
-        center *= 0
-        return kernel
 
-    def hamiltonian(self, configuration):
+def measure_magnetization(configuration):
+    """ Given by normalized sum over all spin values """
 
-        """ Evaluate hamiltonian via normalized convolution with kernel """
+    n_spin = np.prod(configuration.shape)
 
-        kernel = self.adj_kernel(configuration) 
-        c = filters.convolve(configuration, kernel, mode='wrap')
-        return -1. * self.J * np.sum(c * configuration) / np.sum(kernel)
-    
-    def measure_energy(self, configuration):
-        
-        """ Calculate energy for arbitrary dimensional configuration """
-
-        if configuration.ndim - self.n_dim == 1:
-            return np.array([self.hamiltonian(c) for c in configuration])
+    for d in range(configuration.ndim):
+        if d == 0:
+            mag = configuration.sum(-1)
         else:
-            return self.hamiltonian(configuration)
-    
-    def measure_magnetization(self, configuration):
+            mag = mag.sum(-1)
+    mag = mag / n_spin
+    mag = np.abs(mag)
 
-        """ Given by normalized sum over all spin values """
-
-        n_spin = np.prod(self.geometry)
-
-        for d in range(len(self.geometry)):
-            if d == 0:
-                mag = configuration.sum(-1)
-            else:
-                mag = mag.sum(-1)
-        mag = mag / n_spin
-        mag = np.abs(mag)
-
-        return mag
+    return mag
