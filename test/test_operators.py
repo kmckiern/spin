@@ -18,21 +18,20 @@ def test_adj_kernel():
     u_config = uniform_config()
     r_config = random_config()
 
-    expected_kernel = np.array([0, 1, 0],
-                               [1, 0, 1],
-                               [0, 1, 0])
+    expected_kernel = np.array([[0, 1, 0],
+                                [1, 0, 1],
+                                [0, 1, 0]])
 
     queried_u_kernel = adj_kernel(u_config)
-    assert queried_u_kernel == expected_kernel
+    assert np.all(queried_u_kernel == expected_kernel)
 
     queried_r_kernel = adj_kernel(r_config)
-    assert queried_r_kernel == expected_kernel
+    assert np.all(queried_r_kernel == expected_kernel)
 
 
-def test_measure_energy():
+def test_measure_energy(J=1):
     u_config = uniform_config()
     r_config = random_config()
-    J = 1
 
     expected_u_energy = -9.0
     queried_u_energy = measure_energy(J, u_config)
