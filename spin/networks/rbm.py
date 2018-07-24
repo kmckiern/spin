@@ -31,19 +31,21 @@ class RestrictedBoltzmann(Model):
             self.n_hidden = n_hidden
 
     def _optimize_hyperparameters(self, hyper_ps, combs):
-        scores = {}
+        hyper_scores = {}
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
 
             rbm = BernoulliRBM(n_components=self.n_hidden, verbose=self.verbose, **sub_dict)
             rbm.fit(self.train)
 
-            score = np.sum(rbm.score_samples(self.valid))
-            scores[score] = rbm
+            scores = {}
+            scores['train'] = np.sum(rbm.score_samples(self.train))
+            scores['valid'] = np.sum(rbm.score_samples(self.valid))
+            scores['test'] = np.sum(rbm.score_samples(self.test))
+            hyper_scores[scores['valid']] = (scores, rbm)
 
-        self.scores = scores
-        best_score = min(scores.keys())
-        self.rbm = scores[best_score]
+        best_score = min(hyper_scores.keys())
+        self.scores, self.rbm = hyper_scores[best_score]
 
     def fit(self):
         hyper_ps = sorted(self.hyperparameters)
@@ -59,6 +61,6 @@ class RestrictedBoltzmann(Model):
             self.rbm = rbm
 
             self.scores = {}
+            self.scores['train'] = np.sum(rbm.score_samples(self.train))
             self.scores['valid'] = np.sum(rbm.score_samples(self.valid))
             self.scores['test'] = np.sum(rbm.score_samples(self.test))
-
