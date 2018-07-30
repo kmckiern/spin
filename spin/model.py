@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 
 from spin.ensemble import run_mcmc
+from spin.networks.rbm import RestrictedBoltzmann
 
 
 class Model:
@@ -36,6 +37,15 @@ class Model:
         if eq:
             self.configuration = run_mcmc(self.J, self.T, self.configuration)
         self.ensemble, self.energies = run_mcmc(self.J, self.T, self.configuration, ensemble_size)
+
+    def generate_rbm(self, kwargs):
+        if not hasattr(self, 'ensemble'):
+            raise ValueError('must first load or generate ensemble')
+
+        rbm_model = RestrictedBoltzmann(self.ensemble, **kwargs)
+        rbm_model.fit()
+
+        self.rbm_model = rbm_model
 
     def save_model(self, name='model.pkl'):
         if not os.path.exists(self.save_path):
