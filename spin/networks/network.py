@@ -38,7 +38,10 @@ class Model(BaseEstimator):
         # extra
         self.verbose = verbose
 
-    def _optimize_hyperparameters(self):
+    def _fit(self, sub_dict):
+        pass
+
+    def _optimize_hyperparameters(self, hyper_ps, combs):
         pass
 
     def fit(self):

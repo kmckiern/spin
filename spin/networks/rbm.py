@@ -30,18 +30,22 @@ class RestrictedBoltzmann(Model):
         else:
             self.n_hidden = n_hidden
 
+    def _fit(self, sub_dict):
+        rbm = BernoulliRBM(n_components=self.n_hidden, verbose=self.verbose, **sub_dict)
+        rbm.fit(self.train)
+
+        scores = {}
+        scores['train'] = np.sum(rbm.score_samples(self.train))
+        scores['valid'] = np.sum(rbm.score_samples(self.valid))
+        scores['test'] = np.sum(rbm.score_samples(self.test))
+
+        return scores, rbm
+
     def _optimize_hyperparameters(self, hyper_ps, combs):
         hyper_scores = {}
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
-
-            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=self.verbose, **sub_dict)
-            rbm.fit(self.train)
-
-            scores = {}
-            scores['train'] = np.sum(rbm.score_samples(self.train))
-            scores['valid'] = np.sum(rbm.score_samples(self.valid))
-            scores['test'] = np.sum(rbm.score_samples(self.test))
+            scores, rbm = self._fit(sub_dict)
             hyper_scores[scores['valid']] = (scores, rbm)
 
         best_score = min(hyper_scores.keys())
@@ -55,12 +59,4 @@ class RestrictedBoltzmann(Model):
             self._optimize_hyperparameters(hyper_ps, combs)
         else:
             sub_dict = dict(zip(hyper_ps, combs[0]))
-
-            rbm = BernoulliRBM(n_components=self.n_hidden, verbose=True, **sub_dict)
-            rbm.fit(self.train)
-            self.rbm = rbm
-
-            self.scores = {}
-            self.scores['train'] = np.sum(rbm.score_samples(self.train))
-            self.scores['valid'] = np.sum(rbm.score_samples(self.valid))
-            self.scores['test'] = np.sum(rbm.score_samples(self.test))
+            self.scores, self.rbm = self._fit(sub_dict)
