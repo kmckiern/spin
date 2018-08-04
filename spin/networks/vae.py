@@ -2,8 +2,8 @@ import itertools
 
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 import torch.utils.data as Data
+from torch.autograd import Variable
 
 from spin.networks.network import Model
 
@@ -46,19 +46,32 @@ class AutoEncoder(nn.Module):
 
         for epoch in range(self.n_iter):
             for step, x in enumerate(train_loader):
-                reference = Variable(x.view(-1, self.n_visible))
-
                 b_x = Variable(x.view(-1, self.n_visible))
+
                 encoded = self.encoder(b_x)
                 decoded = self.decoder(encoded)
 
-                error = compute_loss(decoded, reference)
+                error = compute_loss(decoded, b_x)
 
                 optimizer.zero_grad()
                 error.backward()
                 optimizer.step()
 
         self.score = error.data[0]
+
+        return self.score
+
+    def score_samples(self, data):
+        x = torch.from_numpy(data).float()
+
+        b_x = Variable(x.view(-1, self.n_visible))
+        encoded = self.encoder(b_x)
+        decoded = self.decoder(encoded)
+
+        compute_loss = nn.MSELoss()
+        error = compute_loss(decoded, b_x)
+
+        return error.data[0]
 
 
 class VAE(Model):
@@ -89,7 +102,9 @@ class VAE(Model):
         vae.fit(self.train)
 
         scores = {}
-        scores['train'] = vae.score
+        scores['train'] = vae.score_samples(self.train)
+        scores['valid'] = vae.score_samples(self.valid)
+        scores['test'] = vae.score_samples(self.test)
 
         return scores, vae
 
@@ -98,7 +113,7 @@ class VAE(Model):
         for cndx, c in enumerate(combs):
             sub_dict = dict(zip(hyper_ps, c))
             scores, vae = self._fit(sub_dict)
-            hyper_scores[scores['train']] = (scores, vae)
+            hyper_scores[scores['valid']] = (scores, vae)
 
         best_score = min(hyper_scores.keys())
         self.scores, self.vae = hyper_scores[best_score]
