@@ -14,25 +14,24 @@ def plot_ensemble(model):
     """ Plot time series and marginal of
     ensemble state, energy, and magnetization """
 
-    n_dim = model.system.n_dim
-    n_spin = model.system.n_spin
+    n_dim = model.configuration.ndim
+    n_spin = model.configuration.size
 
     ensemble = model.ensemble
-    n_samples = ensemble.n_samples
+    n_samples = len(ensemble)
 
-    data_lbl = ['configuration', 'energy', 'magnetization']
-    data_sets = [ensemble.__dict__[i] for i in data_lbl]
+    data_sets = [model.ensemble, model.energies, model.magnetization]
+    ds_lbl = ['configurations', 'energy', 'magnetization']
 
     if n_dim == 2:
         configs_2d = data_sets[0]
         data_sets[0] = configs_2d.reshape(n_samples, n_spin)
 
     f, axs = plt.subplots(3, 2, gridspec_kw={'width_ratios':[3, 1]})
-    for i, ds_lbl in enumerate(data_lbl):
-        ds = data_sets[i]
-
+    for i, ds in enumerate(data_sets):
         ax = axs[i, 0]
         marg = axs[i, 1]
+
         if i == 0:
             sns.heatmap(ds.T, cbar=False, cmap='coolwarm', ax=ax)
             sns.barplot(ds.sum(axis=0), np.arange(n_spin), color='k',
@@ -48,7 +47,7 @@ def plot_ensemble(model):
         marg.set_xticks([])
         ax.set_xticks([])
         ax.set_yticks([])
-        ax.set_ylabel(ds_lbl)
+        ax.set_ylabel(ds_lbl[i])
 
     ax.set_xticks([0, n_samples])
     ax.set_xticklabels([0, n_samples])

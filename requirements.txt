@@ -1,0 +1,9 @@
+setuptools
+matplotlib
+numpy
+scipy
+seaborn
+scikit-learn
+tensorflow
+pytorch
+typing

@@ -64,7 +64,7 @@ def check_convergence(energies, threshold=.1):
         return True
 
 
-def check_autocorrelation(configurations, energies, desired_samples, threshold=.01, min_lag=10):
+def check_autocorrelation(configurations, energies, desired_samples, threshold=.05, min_lag=10):
     """ Determine autocorrelation of time series """
 
     energies -= np.mean(energies)
@@ -77,16 +77,16 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
             if len(uncorrelated) >= desired_samples:
                 return lag
             else:
-                continue
-
+                return np.inf
     return np.inf
 
 
-def run_mcmc(J, T, configuration, desired_samples=1, min_steps=1000, seed=None):
+def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=100, autocorrelation_threshold=.1, seed=None):
     """ Generate samples until either:
         - convergence criterion is met (chain is `mixed`)
         - desired number of independent samples found
     """
+    min_steps = configuration.size * min_step_multiplier
 
     if seed is not None:
         np.random.seed(seed)
@@ -106,7 +106,9 @@ def run_mcmc(J, T, configuration, desired_samples=1, min_steps=1000, seed=None):
                     return configurations[-1]
 
             else:
-                lag = check_autocorrelation(configurations, energies, desired_samples)
+                lag = check_autocorrelation(configurations, energies, desired_samples,
+                                            threshold=autocorrelation_threshold)
+
                 if lag < np.inf:
                     ensemble = np.array(configurations)[::lag][:desired_samples]
                     energies = np.array(energies)[::lag][:desired_samples]
