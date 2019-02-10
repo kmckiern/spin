@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 
 from spin.ensemble import run_mcmc
+from spin.operators import measure_magnetization
 from spin.networks.rbm import RestrictedBoltzmann
 
 
@@ -29,23 +30,30 @@ class Model:
         configuration = np.ones(self.geometry)
         self.configuration = configuration
 
-    def generate_ensemble(self, ensemble_size, eq=True):
+    def generate_ensemble(self, ensemble_size, eq=True, autocorrelation_threshold=.1):
         """ Equilibrate configuration to T and run MCMC until ensemble_size is reached """
         if self.configuration is None:
             self.random_configuration()
 
         if eq:
             self.configuration = run_mcmc(self.J, self.T, self.configuration)
-        self.ensemble, self.energies = run_mcmc(self.J, self.T, self.configuration, ensemble_size)
 
-    def generate_rbm(self, kwargs):
+        self.ensemble, self.energies = run_mcmc(self.J, self.T, self.configuration, desired_samples=ensemble_size,
+                                                autocorrelation_threshold=autocorrelation_threshold)
+
+        self.magnetization = []
+        for configuration in self.ensemble:
+            self.magnetization.append(measure_magnetization(configuration))
+        self.magnetization = np.array(self.magnetization)
+
+    def generate_rbm(self):
         if not hasattr(self, 'ensemble'):
             raise ValueError('must first load or generate ensemble')
 
-        rbm_model = RestrictedBoltzmann(self.ensemble, **kwargs)
+        rbm_model = RestrictedBoltzmann(self.ensemble)
         rbm_model.fit()
 
-        self.rbm_model = rbm_model
+        self.RBM = rbm_model
 
     def save_model(self, name='model.pkl'):
         if not os.path.exists(self.save_path):
