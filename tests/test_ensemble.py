@@ -147,7 +147,7 @@ def test_run_mcmc_ensemble(J=1, T=3, desired_samples=5, min_steps=10):
     config = random_config()
 
     ensemble, energies = run_mcmc(J, T, config, desired_samples=desired_samples,
-                                  min_steps=min_steps)
+                                  min_step_multiplier=.1)
 
     assert len(ensemble) == desired_samples
     assert len(energies) == desired_samples
