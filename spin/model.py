@@ -11,7 +11,7 @@ from spin.networks.rbm import RestrictedBoltzmann
 class Model:
     """ Create, equilibrate, measure, and build network of model """
 
-    def __init__(self, J=1, T=1, geometry=(1,), configuration=None, save_path='.'):
+    def __init__(self, J=1, T=1, geometry=(1,), configuration=None, save_path='.', model_file=None):
         self.J = J
         self.T = T
 
@@ -19,6 +19,9 @@ class Model:
         self.configuration = configuration
 
         self.save_path = save_path
+
+        if model_file is not None:
+            self.load_model(model_file)
 
     def random_configuration(self):
         """ Distribute particles according to random configuration """
