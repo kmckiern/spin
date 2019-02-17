@@ -5,7 +5,7 @@ import numpy as np
 
 from spin.ensemble import run_mcmc
 from spin.operators import measure_magnetization
-from spin.networks.rbm import RestrictedBoltzmann
+from spin.networks.rbm import RBM
 
 
 class Model:
@@ -53,7 +53,7 @@ class Model:
         if not hasattr(self, 'ensemble'):
             raise ValueError('must first load or generate ensemble')
 
-        rbm_model = RestrictedBoltzmann(self.ensemble)
+        rbm_model = RBM(self.ensemble)
         rbm_model.fit()
 
         self.RBM = rbm_model
