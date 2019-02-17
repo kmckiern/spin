@@ -3,10 +3,10 @@ import itertools
 import numpy as np
 from sklearn.neural_network import BernoulliRBM
 
-from spin.networks.network import Model
+from spin.networks.network import Network
 
 
-class RestrictedBoltzmann(Model):
+class RBM(Network):
     """ Restricted Boltzmann Machine (RBM) network model, min(KL(P_h||P_v)) """
 
     def __init__(self,
@@ -18,17 +18,7 @@ class RestrictedBoltzmann(Model):
                  n_epochs=[100],
                  verbose=True):
 
-        super(RestrictedBoltzmann, self).__init__(data,
-                                                  train_percent,
-                                                  batch_size,
-                                                  learning_rate,
-                                                  n_epochs,
-                                                  verbose)
-
-        if n_hidden is None:
-            self.n_hidden = int(self.n_visible * .5)
-        else:
-            self.n_hidden = n_hidden
+        super(RBM, self).__init__(data, n_hidden, train_percent, batch_size, learning_rate, n_epochs, verbose)
 
     def _fit(self, sub_dict):
         rbm = BernoulliRBM(n_components=self.n_hidden, verbose=self.verbose, **sub_dict)
