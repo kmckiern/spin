@@ -3,16 +3,17 @@ from sklearn.model_selection import train_test_split
 from typing import List
 
 
-class Model(BaseEstimator):
+class Network(BaseEstimator):
     """ Abstract base class """
 
     def __init__(self,
                  data,
-                 train_percent: float,
-                 batch_size: List[int],
-                 learning_rate: List[float],
-                 n_epochs: List[int],
-                 verbose: bool):
+                 n_hidden = None,
+                 train_percent: float = .6,
+                 batch_size: List[int] = [64],
+                 learning_rate: List[float] = .001,
+                 n_epochs: List[int] = [100],
+                 verbose: bool = False):
 
         # reshape data
         if data.ndim == 3:
@@ -38,6 +39,11 @@ class Model(BaseEstimator):
         # extra
         self.verbose = verbose
 
+        if n_hidden is None:
+            self.n_hidden = int(self.n_visible * .5)
+        else:
+            self.n_hidden = n_hidden
+
     def _fit(self, sub_dict):
         pass
 
@@ -45,4 +51,7 @@ class Model(BaseEstimator):
         pass
 
     def fit(self):
+        pass
+
+    def score_samples(selfself, data):
         pass
