@@ -5,7 +5,7 @@ from spin.networks.network import Network
 from spin.networks.vae import VAE
 
 
-def test_rbm_init():
+def test_vae_init():
     ensemble = np.load('resources/high_T_4x4_ensemble_5000.npy')
     vae = Network(ensemble, VAE)
 
@@ -14,7 +14,7 @@ def test_rbm_init():
     assert vae.valid.shape == (1000, 16)
 
 
-def test_rbm_fit():
+def test_vae_fit():
     ensemble = np.load('resources/high_T_4x4_ensemble_5000.npy')
     vae = Network(ensemble, VAE)
     vae.fit()
