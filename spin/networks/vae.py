@@ -21,6 +21,8 @@ class VAE(nn.Module):
         self.learning_rate = learning_rate
         self.n_iter = n_iter
 
+        # this is a bit awkward IMO, but trying to match sklearn's API,
+        # so we set visible according to the data input to the fit method
         self.n_visible = None
         self.encoder = None
         self.decoder = None
@@ -81,7 +83,7 @@ class VAE(nn.Module):
                             train_log['reconstructed'].append(log)
                 """
 
-        self.score = error.data[0]
+        self.score = error.item()
 
         return self
 
@@ -95,4 +97,4 @@ class VAE(nn.Module):
         compute_loss = nn.MSELoss()
         error = compute_loss(decoded, b_x)
 
-        return [error.data[0]]
+        return [error.item()]
