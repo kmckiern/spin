@@ -79,6 +79,3 @@ class Network(BaseEstimator):
         else:
             sub_dict = dict(zip(hyper_ps, combs[0]))
             self.scores, self.model = self._fit(sub_dict)
-
-    def score_samples(selfself, data):
-        pass
