@@ -1,3 +1,5 @@
+import itertools
+import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
 from typing import List
@@ -8,10 +10,11 @@ class Network(BaseEstimator):
 
     def __init__(self,
                  data,
-                 n_hidden = None,
+                 model_class,
+                 n_hidden=None,
                  train_percent: float = .6,
                  batch_size: List[int] = [64],
-                 learning_rate: List[float] = .001,
+                 learning_rate: List[float] = [.001],
                  n_epochs: List[int] = [100],
                  verbose: bool = False):
 
@@ -36,22 +39,46 @@ class Network(BaseEstimator):
         else:
             self.optimize = False
 
-        # extra
-        self.verbose = verbose
-
         if n_hidden is None:
             self.n_hidden = int(self.n_visible * .5)
         else:
             self.n_hidden = n_hidden
 
+        self.model_class = model_class
+
+        # extra
+        self.verbose = verbose
+
     def _fit(self, sub_dict):
-        pass
+        model = self.model_class(n_components=self.n_hidden, verbose=self.verbose, **sub_dict)
+        model.fit(self.train)
+
+        scores = {}
+        scores['train'] = np.sum(model.score_samples(self.train))
+        scores['valid'] = np.sum(model.score_samples(self.valid))
+        scores['test'] = np.sum(model.score_samples(self.test))
+
+        return scores, model
 
     def _optimize_hyperparameters(self, hyper_ps, combs):
-        pass
+        hyper_scores = {}
+        for cndx, c in enumerate(combs):
+            sub_dict = dict(zip(hyper_ps, c))
+            scores, model = self._fit(sub_dict)
+            hyper_scores[scores['valid']] = (scores, model)
+
+        best_score = min(hyper_scores.keys())
+        self.scores, self.model = hyper_scores[best_score]
 
     def fit(self):
-        pass
+        hyper_ps = sorted(self.hyperparameters)
+        combs = list(itertools.product(*(self.hyperparameters[name] for name in hyper_ps)))
+
+        if self.optimize:
+            self._optimize_hyperparameters(hyper_ps, combs)
+        else:
+            sub_dict = dict(zip(hyper_ps, combs[0]))
+            self.scores, self.model = self._fit(sub_dict)
 
     def score_samples(selfself, data):
         pass
