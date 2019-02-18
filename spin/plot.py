@@ -58,7 +58,6 @@ def plot_ensemble(model):
 
 
 def plot_rbm(model):
-
     """ Plot RBM output """
 
     rbm = model.RBM.rbm
@@ -80,7 +79,6 @@ def plot_rbm(model):
 
 
 def plot_train(model, n_type='VAE'):
-
     """ Plot error aafo epoch, conditioned on a set of hyperparameters `"""
 
     f, ax = plt.subplots()
@@ -103,63 +101,31 @@ def plot_train(model, n_type='VAE'):
     plt.savefig(os.path.join(model.save_path, n_type + '_opt.png'), dpi=200)
 
 
-def plot_reconstruction(model):
+def plot_reconstruction(model, vae_model):
+    geometry = model.geometry
 
-    vae = model.VAE.vae
-    epochs = vae.n_iter
-    reference = vae.train_log['reference']
-    encoded = vae.train_log['encoded']
-    decoded = vae.train_log['decoded']
-    n_refs = reference.shape[0]
+    train_log = vae_model.scores['train_log']
+    n_log = train_log['n_log']
 
-    f, axs = plt.subplots(3, n_refs)
     movie_dir = os.path.join(model.save_path, 'train_movie')
     if not os.path.exists(movie_dir):
         os.makedirs(movie_dir)
 
-    for epoch in range(epochs):
+    f, axs = plt.subplots(2, n_log, figsize=(2*n_log, 5))
+    for ref in range(n_log):
+        ax = axs[0][ref]
+        sns.heatmap(train_log['references'][ref].reshape(geometry), ax=ax, cbar=False, square=True)
+        ax.set_xticks([])
+        ax.set_yticks([])
 
-        for ref in range(n_refs):
-            # plot reference samples once
-            if epoch == 0:
-                ax = axs[0][ref]
-                data_ref = reference[ref]
-                if model.system.n_dim == 1:
-                    s_1d = data_ref.size
-                    ref_plt = data_ref.reshape(1, s_1d)
-                else:
-                    s_2d = model.system.geometry
-                    ref_plt = data_ref.reshape(s_2d)
-                sns.heatmap(ref_plt, ax=ax,
-                            cbar=False, cmap='coolwarm', square=True)
-                ax.set_xticks([])
-                ax.set_yticks([])
-
-            # plot encoded images
+    for iter in range(len(train_log['reconstructed'])):
+        for ref in range(n_log):
             ax = axs[1][ref]
-            data_ref = encoded[epoch][ref]
-            hidden_len = int(data_ref.shape[0]**.5)
-            if model.system.n_dim == 2:
-                decode_plt = data_ref.reshape((hidden_len, hidden_len))
-            else:
-                decode_plt = data_ref.reshape(1, s_1d)
-            sns.heatmap(decode_plt, ax=ax, cbar=False, cmap='coolwarm',
-                        square=True)
+            sns.heatmap(train_log['reconstructed'][iter][ref].reshape(geometry), ax=ax, cbar=False, square=True)
             ax.set_xticks([])
             ax.set_yticks([])
 
-            # plot reconstructed images
-            ax = axs[2][ref]
-            data_ref = decoded[epoch][ref]
-            if model.system.n_dim == 2:
-                decode_plt = data_ref.reshape(s_2d)
-            else:
-                decode_plt = data_ref.reshape(1, s_1d)
-            sns.heatmap(decode_plt, ax=ax, cbar=False, cmap='coolwarm',
-                        square=True)
-            ax.set_xticks([])
-            ax.set_yticks([])
+        axs[1][0].set_title("epoch: {}\nloss: {:05f}".format(iter, train_log['error'][iter]), loc='left')
 
-        plt.savefig(os.path.join(movie_dir, 'e' + str(epoch).zfill(8) +
-                                 '.png'), dpi=200)
-
+        plt.tight_layout()
+        plt.savefig(os.path.join(movie_dir, 'i' + str(iter).zfill(8) + '.png'))

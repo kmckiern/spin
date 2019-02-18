@@ -2,10 +2,12 @@ import os
 import pickle
 
 import numpy as np
+from sklearn.neural_network import BernoulliRBM
 
 from spin.ensemble import run_mcmc
 from spin.operators import measure_magnetization
-from spin.networks.rbm import RestrictedBoltzmann
+from spin.networks.network import Network
+from spin.networks.vae import VAE
 
 
 class Model:
@@ -22,6 +24,9 @@ class Model:
 
         if model_file is not None:
             self.load_model(model_file)
+
+        self.RBM = None
+        self.VAE = None
 
     def random_configuration(self):
         """ Distribute particles according to random configuration """
@@ -53,10 +58,19 @@ class Model:
         if not hasattr(self, 'ensemble'):
             raise ValueError('must first load or generate ensemble')
 
-        rbm_model = RestrictedBoltzmann(self.ensemble)
-        rbm_model.fit()
+        rbm = Network(self.ensemble, BernoulliRBM)
+        rbm.fit()
 
-        self.RBM = rbm_model
+        self.RBM = rbm.model
+
+    def generate_vae(self):
+        if not hasattr(self, 'ensemble'):
+            raise ValueError('must first load or generate ensemble')
+
+        vae = Network(self.ensemble, VAE)
+        vae.fit()
+
+        self.VAE = vae.model
 
     def save_model(self, name='model.pkl'):
         if not os.path.exists(self.save_path):

@@ -1,21 +1,22 @@
 import numpy as np
+from sklearn.neural_network import BernoulliRBM
 
-from spin.networks.rbm import RestrictedBoltzmann
+from spin.networks.network import Network
 
 
 def test_rbm_init():
     ensemble = np.load('resources/high_T_4x4_ensemble_5000.npy')
-    rbm_model = RestrictedBoltzmann(ensemble)
+    rbm = Network(ensemble, BernoulliRBM)
 
-    assert rbm_model.train.shape == (3000, 16)
-    assert rbm_model.test.shape == (1000, 16)
-    assert rbm_model.valid.shape == (1000, 16)
+    assert rbm.train.shape == (3000, 16)
+    assert rbm.test.shape == (1000, 16)
+    assert rbm.valid.shape == (1000, 16)
 
 
 def test_rbm_fit():
     ensemble = np.load('resources/high_T_4x4_ensemble_5000.npy')
-    rbm_model = RestrictedBoltzmann(ensemble)
-    rbm_model.fit()
+    rbm = Network(ensemble, BernoulliRBM)
+    rbm.fit()
 
-    assert hasattr(rbm_model, 'scores')
-    assert hasattr(rbm_model, 'rbm')
+    assert hasattr(rbm, 'scores')
+    assert hasattr(rbm, 'model')
