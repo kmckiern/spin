@@ -58,7 +58,7 @@ class Model:
         if not hasattr(self, 'ensemble'):
             raise ValueError('must first load or generate ensemble')
 
-        rbm = Network(self.ensemble, BernoulliRBM, n_epochs=[10], verbose=True)
+        rbm = Network(self.ensemble, BernoulliRBM)
         rbm.fit()
 
         self.RBM = rbm.model
@@ -67,7 +67,7 @@ class Model:
         if not hasattr(self, 'ensemble'):
             raise ValueError('must first load or generate ensemble')
 
-        vae = Network(self.ensemble, VAE, verbose=True)
+        vae = Network(self.ensemble, VAE)
         vae.fit()
 
         self.VAE = vae.model
