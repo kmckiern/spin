@@ -61,7 +61,7 @@ class Model:
         rbm = Network(self.ensemble, BernoulliRBM)
         rbm.fit()
 
-        self.RBM = rbm.model
+        self.RBM = rbm
 
     def generate_vae(self):
         if not hasattr(self, 'ensemble'):
@@ -70,7 +70,7 @@ class Model:
         vae = Network(self.ensemble, VAE)
         vae.fit()
 
-        self.VAE = vae.model
+        self.VAE = vae
 
     def save_model(self, name='model.pkl'):
         if not os.path.exists(self.save_path):
