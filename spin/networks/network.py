@@ -2,21 +2,26 @@ import itertools
 import numpy as np
 from sklearn.base import BaseEstimator
 from sklearn.model_selection import train_test_split
-from typing import List
 
 
 class Network(BaseEstimator):
-    """ Abstract base class """
-
     def __init__(self,
                  data,
                  model_class,
                  n_hidden=None,
+                 batch_size=None,
+                 learning_rate=None,
+                 n_epochs=None,
                  train_percent: float = .6,
-                 batch_size: List[int] = [64],
-                 learning_rate: List[float] = [.001],
-                 n_epochs: List[int] = [100],
                  verbose: bool = False):
+
+        # avoid mutable defaults
+        if batch_size is None:
+            batch_size = [64]
+        if learning_rate is None:
+            learning_rate = [.001]
+        if n_epochs is None:
+            n_epochs = [100]
 
         # reshape data
         if data.ndim == 3:
