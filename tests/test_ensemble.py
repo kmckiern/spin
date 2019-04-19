@@ -55,8 +55,8 @@ def test_acceptance_criterion_high_T(e_i=-4, high_T=3, seed=42):
 def test_mc_step_uniform_low_T(J=1, low_T=1):
     config = uniform_config()
 
-    seed_all_T_fail = 42
-    seed_high_T_pass = 742
+    seed_all_T_fail = 6
+    seed_high_T_pass = 0
 
     assert mc_step(J, low_T, config, seed_all_T_fail) == None
     assert mc_step(J, low_T, config, seed_high_T_pass) == None
@@ -65,15 +65,15 @@ def test_mc_step_uniform_low_T(J=1, low_T=1):
 def test_mc_step_uniform_high_T(J=1, high_T=3):
     config = uniform_config()
 
-    seed_all_T_fail = 42
-    seed_high_T_pass = 742
+    seed_all_T_fail = 6
+    seed_high_T_pass = 0
 
     assert mc_step(J, high_T, config, seed_all_T_fail) == None
 
-    expected_pass_config = np.array([[1., 1., 1.],
+    expected_pass_config = np.array([[1., -1., 1.],
                                      [1., 1., 1.],
-                                     [-1., 1., 1.]])
-    expected_pass_energy = -5.0
+                                     [1., 1., 1.]])
+    expected_pass_energy = -5.0 / expected_pass_config.size
 
     queried_pass_config, queried_pass_energy = mc_step(J, high_T, config, seed_high_T_pass)
 
@@ -84,8 +84,8 @@ def test_mc_step_uniform_high_T(J=1, high_T=3):
 def test_mc_step_random_low_T(J=1, low_T=1):
     config = random_config()
 
-    seed_all_T_fail = 42
-    seed_high_T_pass = 22
+    seed_all_T_fail = 8
+    seed_high_T_pass = 18
 
     assert mc_step(J, low_T, config, seed_all_T_fail) == None
     assert mc_step(J, low_T, config, seed_high_T_pass) == None
@@ -94,16 +94,16 @@ def test_mc_step_random_low_T(J=1, low_T=1):
 def test_mc_step_random_high_T(J=1, high_T=3):
     config = random_config()
 
-    seed_all_T_fail = 42
-    seed_high_T_pass = 22
+    seed_all_T_fail = 8
+    seed_high_T_pass = 18
 
     assert mc_step(J, high_T, config, seed_all_T_fail) == None
 
     expected_pass_config = np.array([[-1, 1, -1, -1],
-                                     [1, 1, -1, -1],
                                      [-1, 1, -1, -1],
+                                     [-1, 1, -1, 1],
                                      [-1, -1, 1, -1]])
-    expected_pass_energy = -2.0
+    expected_pass_energy = -0.0
 
     queried_pass_config, queried_pass_energy = mc_step(J, high_T, config, seed_high_T_pass)
 
@@ -131,11 +131,11 @@ def test_check_autocorrelation(desired_samples=5):
 def test_run_mcmc_eq(J=1, T=3):
     config = random_config()
 
-    seed_high_T_pass = 22
+    seed_high_T_pass = 18
 
     expected_eq_config = np.array([[-1, 1, -1, -1],
-                                   [1, 1, -1, -1],
                                    [-1, 1, -1, -1],
+                                   [-1, 1, -1, 1],
                                    [-1, -1, 1, -1]])
 
     queried_eq_config = run_mcmc(J, T, config, seed=seed_high_T_pass)
@@ -143,7 +143,7 @@ def test_run_mcmc_eq(J=1, T=3):
     assert np.all(queried_eq_config == expected_eq_config)
 
 
-def test_run_mcmc_ensemble(J=1, T=3, desired_samples=5, min_steps=10):
+def test_run_mcmc_ensemble(J=1, T=3, desired_samples=5):
     config = random_config()
 
     ensemble, energies = run_mcmc(J, T, config, desired_samples=desired_samples,

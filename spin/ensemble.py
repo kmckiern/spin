@@ -56,7 +56,7 @@ def mc_step(J, T, configuration, seed=None):
                 break
 
 
-def check_convergence(energies, threshold=.1):
+def check_convergence(energies, threshold=.4):
     """ Converged if standard error of the energy < threshold """
 
     ste = np.std(energies) / (len(energies) ** .5)
@@ -71,7 +71,6 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
     n_samples = len(energies)
     for lag in np.arange(min_lag, n_samples, 2):
         ac = np.corrcoef(energies[:n_samples - lag], energies[lag:n_samples])[0, 1]
-
         if np.abs(ac) < threshold:
             uncorrelated = configurations[::lag]
             if len(uncorrelated) >= desired_samples:
@@ -81,13 +80,12 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
     return np.inf
 
 
-def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=100, autocorrelation_threshold=.1, seed=None):
+def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=1, autocorrelation_threshold=.7, seed=None):
     """ Generate samples until either:
         - convergence criterion is met (chain is `mixed`)
         - desired number of independent samples found
     """
     min_steps = configuration.size * min_step_multiplier
-
     if seed is not None:
         np.random.seed(seed)
 
@@ -100,11 +98,9 @@ def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=100, au
         energies.append(energy)
 
         if len(energies) > min_steps:
-
             if desired_samples == 1:
                 if check_convergence(energies):
                     return configurations[-1]
-
             else:
                 lag = check_autocorrelation(configurations, energies, desired_samples,
                                             threshold=autocorrelation_threshold)

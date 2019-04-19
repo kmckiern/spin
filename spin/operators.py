@@ -5,7 +5,6 @@ from scipy.ndimage import filters
 
 def adj_kernel(configuration):
     """ Creates adjecency kernel for arbitrary dimensional array """
-
     # ensure each dimension is gt 2
     for dim_length in configuration.shape:
         assert dim_length > 2
@@ -25,23 +24,27 @@ def adj_kernel(configuration):
 
 def measure_energy(J, configuration):
     """ Evaluate hamiltonian via normalized convolution with kernel """
-
     kernel = adj_kernel(configuration)
     c = filters.convolve(configuration, kernel, mode='wrap')
-    return -1. * J * np.sum(c * configuration) / np.sum(kernel)
+    energy = -1. * J * np.sum(c * configuration) / np.sum(kernel)
+    return energy / configuration.size
 
 
 def measure_magnetization(configuration):
     """ Given by normalized sum over all spin values """
-
-    n_spin = np.prod(configuration.shape)
-
     for d in range(configuration.ndim):
         if d == 0:
             mag = configuration.sum(-1)
         else:
             mag = mag.sum(-1)
-    mag = mag / n_spin
     mag = np.abs(mag)
 
-    return mag
+    return mag / configuration.size
+
+
+def measure_heat_capacity(energy, temperature):
+    return (np.mean(energy ** 2) - np.mean(energy) ** 2) / temperature ** 2
+
+
+def measure_magnetic_susceptibility(magnetization, temperature):
+    return (np.mean(magnetization ** 2) - np.mean(magnetization) ** 2) / temperature
