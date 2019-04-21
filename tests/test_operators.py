@@ -59,19 +59,21 @@ def test_measure_heat_capacity():
     j = 1
     t = 1
 
-    u_energy = measure_energy(j, uniform_config())
-    r_energy = measure_energy(j, random_config())
+    u = uniform_config()
+    r = random_config()
+    u_energy = measure_energy(j, u)
+    r_energy = measure_energy(j, r)
     r_energies = np.array([0.14228717, 0.37562505, 0.02317073, 0.73532235, 0.62940131,
                            0.96122942, 0.21199548, 0.92335655, 0.97151338, 0.84795043])
 
     expected_u_heat_capacity = 0
-    queried_u_heat_capacity = measure_heat_capacity(u_energy, t)
+    queried_u_heat_capacity = measure_heat_capacity(u_energy, t, u.size)
     assert queried_u_heat_capacity == expected_u_heat_capacity
 
     expected_r_heat_capacity = 0
-    queried_r_heat_capacity = measure_heat_capacity(r_energy, t)
+    queried_r_heat_capacity = measure_heat_capacity(r_energy, t, r.size)
     assert queried_r_heat_capacity == expected_r_heat_capacity
 
     expected_r_heat_capacity = 0.11936753280322099
-    queried_r_heat_capacity = measure_heat_capacity(r_energies, t)
+    queried_r_heat_capacity = measure_heat_capacity(r_energies, t, 1)
     assert abs(queried_r_heat_capacity - expected_r_heat_capacity) < 1e-6
