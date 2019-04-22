@@ -42,17 +42,9 @@ def measure_magnetization(configuration):
     return mag / configuration.size
 
 
-<<<<<<< HEAD
 def measure_heat_capacity(energy, temperature, n_spin=1):
     return (np.mean(energy ** 2) - np.mean(energy) ** 2) / (temperature ** 2 * n_spin)
 
 
 def measure_magnetic_susceptibility(magnetization, temperature, n_spin=1):
-=======
-def measure_heat_capacity(energy, temperature, n_spin):
-    return (np.mean(energy ** 2) - np.mean(energy) ** 2) / (temperature ** 2 * n_spin)
-
-
-def measure_magnetic_susceptibility(magnetization, temperature, n_spin):
->>>>>>> 86c550ddcca0810c059132278939bd3306cf9838
     return (np.mean(magnetization ** 2) - np.mean(magnetization) ** 2) / (temperature * n_spin)
