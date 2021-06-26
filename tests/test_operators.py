@@ -79,13 +79,13 @@ def test_measure_heat_capacity():
     )
 
     expected_u_heat_capacity = 0
-    queried_u_heat_capacity = measure_heat_capacity(u_energy, t)
+    queried_u_heat_capacity = measure_heat_capacity(u_energy, t, u.size)
     assert queried_u_heat_capacity == expected_u_heat_capacity
 
     expected_r_heat_capacity = 0
-    queried_r_heat_capacity = measure_heat_capacity(r_energy, t)
+    queried_r_heat_capacity = measure_heat_capacity(r_energy, t, r.size)
     assert queried_r_heat_capacity == expected_r_heat_capacity
 
     expected_r_heat_capacity = 0.11936753280322099
-    queried_r_heat_capacity = measure_heat_capacity(r_energies, t)
+    queried_r_heat_capacity = measure_heat_capacity(r_energies, t, 1)
     assert abs(queried_r_heat_capacity - expected_r_heat_capacity) < 1e-6
