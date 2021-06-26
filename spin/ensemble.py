@@ -30,7 +30,7 @@ def acceptance_criterion(energy_i, energy_f, T, seed=None):
         np.random.seed(seed)
 
     energy_difference = 2 * (energy_f - energy_i)
-    gibbs_criterion = np.exp(-1. * energy_difference / T)
+    gibbs_criterion = np.exp(-1.0 * energy_difference / T)
     if (energy_difference < 0) or (np.random.rand() < gibbs_criterion):
         return True
 
@@ -56,21 +56,23 @@ def mc_step(J, T, configuration, seed=None):
                 break
 
 
-def check_convergence(energies, threshold=.4):
+def check_convergence(energies, threshold=0.4):
     """ Converged if standard error of the energy < threshold """
 
-    ste = np.std(energies) / (len(energies) ** .5)
+    ste = np.std(energies) / (len(energies) ** 0.5)
     if ste < threshold:
         return True
 
 
-def check_autocorrelation(configurations, energies, desired_samples, threshold=.05, min_lag=10):
+def check_autocorrelation(
+    configurations, energies, desired_samples, threshold=0.05, min_lag=10
+):
     """ Determine autocorrelation of time series """
 
     energies -= np.mean(energies)
     n_samples = len(energies)
     for lag in np.arange(min_lag, n_samples, 2):
-        ac = np.corrcoef(energies[:n_samples - lag], energies[lag:n_samples])[0, 1]
+        ac = np.corrcoef(energies[: n_samples - lag], energies[lag:n_samples])[0, 1]
         if np.abs(ac) < threshold:
             uncorrelated = configurations[::lag]
             if len(uncorrelated) >= desired_samples:
@@ -80,7 +82,15 @@ def check_autocorrelation(configurations, energies, desired_samples, threshold=.
     return np.inf
 
 
-def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=1, autocorrelation_threshold=.7, seed=None):
+def run_mcmc(
+    J,
+    T,
+    configuration,
+    desired_samples=1,
+    min_step_multiplier=1,
+    autocorrelation_threshold=0.7,
+    seed=None,
+):
     """ Generate samples until either:
         - convergence criterion is met (chain is `mixed`)
         - desired number of independent samples found
@@ -102,8 +112,12 @@ def run_mcmc(J, T, configuration, desired_samples=1, min_step_multiplier=1, auto
                 if check_convergence(energies):
                     return configurations[-1]
             else:
-                lag = check_autocorrelation(configurations, energies, desired_samples,
-                                            threshold=autocorrelation_threshold)
+                lag = check_autocorrelation(
+                    configurations,
+                    energies,
+                    desired_samples,
+                    threshold=autocorrelation_threshold,
+                )
 
                 if lag < np.inf:
                     ensemble = np.array(configurations)[::lag][:desired_samples]

@@ -13,7 +13,15 @@ from spin.networks.vae import VAE
 class Model:
     """ Create, equilibrate, measure, and build network of model """
 
-    def __init__(self, J=1, T=1, geometry=(1,), configuration=None, save_path='.', model_file=None):
+    def __init__(
+        self,
+        J=1,
+        T=1,
+        geometry=(1,),
+        configuration=None,
+        save_path=".",
+        model_file=None,
+    ):
         self.J = J
         self.T = T
 
@@ -38,7 +46,7 @@ class Model:
         configuration = np.ones(self.geometry)
         self.configuration = configuration
 
-    def generate_ensemble(self, ensemble_size, eq=True, autocorrelation_threshold=.1):
+    def generate_ensemble(self, ensemble_size, eq=True, autocorrelation_threshold=0.1):
         """ Equilibrate configuration to T and run MCMC until ensemble_size is reached """
         if self.configuration is None:
             self.random_configuration()
@@ -46,8 +54,13 @@ class Model:
         if eq:
             self.configuration = run_mcmc(self.J, self.T, self.configuration)
 
-        self.ensemble, self.energies = run_mcmc(self.J, self.T, self.configuration, desired_samples=ensemble_size,
-                                                autocorrelation_threshold=autocorrelation_threshold)
+        self.ensemble, self.energies = run_mcmc(
+            self.J,
+            self.T,
+            self.configuration,
+            desired_samples=ensemble_size,
+            autocorrelation_threshold=autocorrelation_threshold,
+        )
 
         self.magnetization = []
         for configuration in self.ensemble:
@@ -55,8 +68,8 @@ class Model:
         self.magnetization = np.array(self.magnetization)
 
     def generate_rbm(self):
-        if not hasattr(self, 'ensemble'):
-            raise ValueError('must first load or generate ensemble')
+        if not hasattr(self, "ensemble"):
+            raise ValueError("must first load or generate ensemble")
 
         rbm = Network(self.ensemble, BernoulliRBM)
         rbm.fit()
@@ -64,30 +77,30 @@ class Model:
         self.RBM = rbm
 
     def generate_vae(self):
-        if not hasattr(self, 'ensemble'):
-            raise ValueError('must first load or generate ensemble')
+        if not hasattr(self, "ensemble"):
+            raise ValueError("must first load or generate ensemble")
 
         vae = Network(self.ensemble, VAE)
         vae.fit()
 
         self.VAE = vae
 
-    def save_model(self, name='model.pkl'):
+    def save_model(self, name="model.pkl"):
         if not os.path.exists(self.save_path):
             os.makedirs(self.save_path)
 
         file_out = os.path.join(self.save_path, name)
         if os.path.exists(file_out):
-            raise ValueError('model with this name already exists')
+            raise ValueError("model with this name already exists")
 
-        with open(file_out, 'wb') as f:
+        with open(file_out, "wb") as f:
             pickle.dump(self, f)
 
-    def load_model(self, name='model.pkl'):
+    def load_model(self, name="model.pkl"):
         if not os.path.exists(name):
-            raise ValueError('model does not exists')
+            raise ValueError("model does not exists")
 
-        with open(name, 'rb') as f:
+        with open(name, "rb") as f:
             obj = pickle.load(f)
 
         for key in obj.__dict__:

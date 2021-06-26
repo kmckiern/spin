@@ -6,16 +6,21 @@ import numpy as np
 
 def gen_samples(temp, geo, n_samples):
 
-    lbl = '_'.join([str(temp)[:4].replace('.', 'p'),
-                    str(geo).replace(',', 'x')[1:-1], str(n_samples)])
-    lbl = lbl.replace(' ', '')
-    sample_dir = os.path.join('..', 'samples', lbl)
+    lbl = "_".join(
+        [
+            str(temp)[:4].replace(".", "p"),
+            str(geo).replace(",", "x")[1:-1],
+            str(n_samples),
+        ]
+    )
+    lbl = lbl.replace(" ", "")
+    sample_dir = os.path.join("..", "samples", lbl)
 
     x = Model(geometry=geo, T=temp, save_path=sample_dir)
 
-    model_file = os.path.join(sample_dir, 'model.pkl')
+    model_file = os.path.join(sample_dir, "model.pkl")
     if not os.path.exists(model_file):
-        x.generate_ensemble(n_samples, autocorrelation_threshold=.5)
+        x.generate_ensemble(n_samples, autocorrelation_threshold=0.5)
         x.generate_rbm()
         x.save_model()
     else:
@@ -25,8 +30,8 @@ def gen_samples(temp, geo, n_samples):
     plot_rbm(x)
 
 
-tc = 2. / np.log(1 + 2**.5)
-temps = np.arange(-1, 1, .1)
+tc = 2.0 / np.log(1 + 2 ** 0.5)
+temps = np.arange(-1, 1, 0.1)
 temps[10] = 0
 temps += tc
 

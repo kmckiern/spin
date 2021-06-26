@@ -5,13 +5,14 @@ from torch.autograd import Variable
 
 
 class VAE(nn.Module):
-
-    def __init__(self,
-                 n_components=None,
-                 learning_rate=0.001,
-                 batch_size=64,
-                 n_iter=100,
-                 verbose=False):
+    def __init__(
+        self,
+        n_components=None,
+        learning_rate=0.001,
+        batch_size=64,
+        n_iter=100,
+        verbose=False,
+    ):
 
         super(VAE, self).__init__()
 
@@ -33,8 +34,8 @@ class VAE(nn.Module):
         self.n_visible = training_data[0].size
         self.encoder = nn.Sequential(nn.Linear(self.n_visible, self.n_hidden))
         self.decoder = nn.Sequential(
-            nn.Linear(self.n_hidden, self.n_visible),
-            nn.Sigmoid())
+            nn.Linear(self.n_hidden, self.n_visible), nn.Sigmoid()
+        )
 
         optimizer = torch.optim.Adam(self.parameters(), lr=self.learning_rate)
         compute_loss = nn.MSELoss()

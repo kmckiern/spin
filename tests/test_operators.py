@@ -1,6 +1,11 @@
 import numpy as np
 
-from spin.operators import adj_kernel, measure_energy, measure_magnetization, measure_heat_capacity
+from spin.operators import (
+    adj_kernel,
+    measure_energy,
+    measure_magnetization,
+    measure_heat_capacity,
+)
 
 
 def uniform_config():
@@ -8,19 +13,16 @@ def uniform_config():
 
 
 def random_config():
-    return np.array([[-1, 1, -1, -1],
-                     [-1, 1, -1, -1],
-                     [-1, 1, -1, -1],
-                     [-1, -1, 1, -1]])
+    return np.array(
+        [[-1, 1, -1, -1], [-1, 1, -1, -1], [-1, 1, -1, -1], [-1, -1, 1, -1]]
+    )
 
 
 def test_adj_kernel():
     u_config = uniform_config()
     r_config = random_config()
 
-    expected_kernel = np.array([[0, 1, 0],
-                                [1, 0, 1],
-                                [0, 1, 0]])
+    expected_kernel = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])
 
     queried_u_kernel = adj_kernel(u_config)
     assert np.all(queried_u_kernel == expected_kernel)
@@ -61,8 +63,20 @@ def test_measure_heat_capacity():
 
     u_energy = measure_energy(j, uniform_config())
     r_energy = measure_energy(j, random_config())
-    r_energies = np.array([0.14228717, 0.37562505, 0.02317073, 0.73532235, 0.62940131,
-                           0.96122942, 0.21199548, 0.92335655, 0.97151338, 0.84795043])
+    r_energies = np.array(
+        [
+            0.14228717,
+            0.37562505,
+            0.02317073,
+            0.73532235,
+            0.62940131,
+            0.96122942,
+            0.21199548,
+            0.92335655,
+            0.97151338,
+            0.84795043,
+        ]
+    )
 
     expected_u_heat_capacity = 0
     queried_u_heat_capacity = measure_heat_capacity(u_energy, t)
