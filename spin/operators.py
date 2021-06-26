@@ -25,8 +25,8 @@ def adj_kernel(configuration):
 def measure_energy(J, configuration):
     """ Evaluate hamiltonian via normalized convolution with kernel """
     kernel = adj_kernel(configuration)
-    c = filters.convolve(configuration, kernel, mode='wrap')
-    energy = -1. * J * np.sum(c * configuration) / np.sum(kernel)
+    c = filters.convolve(configuration, kernel, mode="wrap")
+    energy = -1.0 * J * np.sum(c * configuration) / np.sum(kernel)
     return energy / configuration.size
 
 
